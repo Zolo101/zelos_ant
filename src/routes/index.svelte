@@ -34,18 +34,6 @@
     })
 </script>
 
-<svelte:head>
-    <title>zelo's ant</title>
-    <meta name="author" content="Zelo101">
-
-    <meta property="og:title" content="zelo's ant"/>
-    <meta property="og:type" content="website"/>
-    <meta property="og:url" content="https://ant.zelo.dev"/>
-    <meta property="og:image" content="https://ant.zelo.dev/zelos_ant_3x.png"/>
-    <meta property="og:description" content="Langton's ant simulator with a extensive rules editor."/>
-    <meta name="theme-color" content="#6f84d6">
-</svelte:head>
-
 <div class="main">
     <div class="top">
         <div class="viewer-editor">
