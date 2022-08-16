@@ -1,0 +1,32 @@
+/* Globals */
+body {
+    font-family: Arial, serif;
+    margin: 0;
+    background: darkgrey;
+    /*background: linear-gradient(gainsboro, ghostwhite 80%, gainsboro) no-repeat, gainsboro;*/
+}
+
+canvas {
+    outline: 1px solid black;
+    max-width: 800px;
+    max-height: 800px;
+}
+
+.main {
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+}
+
+.button {
+    padding: 10px;
+    margin: 5px;
+    background-color: lightgrey;
+    outline: 1px solid black;
+    text-align: center;
+    cursor: pointer;
+}
+
+.button:hover {
+    background-color: darkgrey;
+}
