@@ -28,6 +28,7 @@
 	"type": "module",
 	"dependencies": {
 		"blockly": "^8.0.5",
+		"dexie": "^3.2.2",
 		"ramda": "^0.28.0"
 	}
 }

@@ -11,10 +11,6 @@
             Game.paused = false
         }}>Restart (R)</div>
         <div class="button control" on:click={() => Game.paused = !Game.paused}>{controlText} (P)</div>
-        <div class="button control" on:click={() => Game.save()}>Save</div>
-        <div class="button control" on:click={() => Game.load()}>Load</div>
-<!--        <div class="button control" on:click={() => Game.paused = !Game.paused}>Export</div>-->
-<!--        <div class="button control" on:click={() => Game.paused = !Game.paused}>Import</div>-->
     </div>
     <div class="tickspeed">
         <p class="tickspeed-header">Tickspeed</p>

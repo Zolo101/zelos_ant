@@ -4,6 +4,7 @@
     import { onMount } from "svelte";
     import { main } from "../ant";
     import Tab from "../component/Tab.svelte";
+    import Alert from "../component/Alert.svelte";
 
     onMount(() => {
         const ctx = document.getElementById("canvas").getContext("2d", {alpha: false});
@@ -44,6 +45,7 @@
         </div>
     </div>
 </div>
+<Alert/>
 
 <style>
     .main {

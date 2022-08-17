@@ -1,17 +1,17 @@
 <script lang="ts">
     import Game from "../ant/game";
     import Tile from "./Tile.svelte";
-    import { newTileEvent } from "../ant";
+    import { newTileEvent, updateTileEvent } from "../ant";
     import { onMount } from "svelte";
 
     const randomColor = () => [~~(Math.random()*255),~~(Math.random()*255),~~(Math.random()*255)]
 
-    let len;
+    let x;
     const addTile = () => {
         const newTile = Game.addTile(randomColor(), ["turn left"]);
         // tiles1 = Array.from(Game.tiles.values());
-        len = Game.tiles.length
 
+        window.dispatchEvent(updateTileEvent)
         window.dispatchEvent(newTileEvent)
         Game.restart();
     };
@@ -23,16 +23,18 @@
         Game.tiles.splice(index, 1)
         Game.colours.splice(index, 1)
         // tiles1 = Array.from(Game.tiles.values());
-        len = Game.tiles.length
-
+        window.dispatchEvent(updateTileEvent)
         Game.restart();
     };
 
-    onMount(() => len = Game.tiles.length)
+    // TODO: Temporary
+    window.addEventListener("updateTile", () =>  x = (x + 1) & 3)
+
+    onMount(() => window.dispatchEvent(updateTileEvent))
 </script>
 
 <div class="tiles">
-    {#key len}
+    {#key x}
         {#each Game.tiles as tile, index}
             <div class="tile-container">
                 <div class="remove" on:click={() => removeTile(index)}>X</div>

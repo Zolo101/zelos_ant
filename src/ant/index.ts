@@ -15,6 +15,8 @@ import type { WorkspaceSvg } from "core/workspace_svg";
 
 export let ctx: CanvasRenderingContext2D;
 export let newTileEvent = new Event("newTile");
+// TODO: Temporary
+export let updateTileEvent = new Event("updateTile");
 export let workspace: WorkspaceSvg;
 
 export function main(ctx_real: CanvasRenderingContext2D) {
@@ -182,7 +184,6 @@ export function main(ctx_real: CanvasRenderingContext2D) {
         }
     })
     Blockly.serialization.workspaces.load(defaultBlockly, workspace)
-    Game.load();
 
     window.addEventListener("newTile", () => {
         const block = workspace.newBlock("on");
@@ -236,8 +237,8 @@ export function iterate() {
     }
 }
 
-export function createImage(ctx: CanvasRenderingContext2D) {
-    const imgdata = new ImageData(Game.board.output(), Game.board.width, Game.board.height)
-    const img = createImageBitmap(imgdata, 0, 0, Game.board.width, Game.board.height)
+export function createImage(ctx: CanvasRenderingContext2D, data: Uint8ClampedArray, width: number, height: number, sx: number = 0, sy: number = 0) {
+    const imgdata = new ImageData(data, width, height)
+    const img = createImageBitmap(imgdata, sx, sy, width, height)
     img.then(img => ctx.drawImage(img, 0, 0))
 }
