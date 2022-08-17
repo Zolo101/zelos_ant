@@ -2,7 +2,7 @@
     export let href: string;
 </script>
 
-<a href={href} target="_self"><slot></slot></a>
+<a href={href} target="_blank"><slot></slot></a>
 
 <style>
 
