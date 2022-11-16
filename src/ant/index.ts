@@ -238,7 +238,5 @@ export function iterate() {
 }
 
 export function createImage(ctx: CanvasRenderingContext2D, data: Uint8ClampedArray, width: number, height: number, sx: number = 0, sy: number = 0) {
-    const imgdata = new ImageData(data, width, height)
-    const img = createImageBitmap(imgdata, sx, sy, width, height)
-    img.then(img => ctx.drawImage(img, 0, 0))
+    ctx.putImageData(new ImageData(data, width, height), sx, sy)
 }
