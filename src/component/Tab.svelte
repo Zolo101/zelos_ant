@@ -1,13 +1,8 @@
 <script lang="ts">
-    import Tiles from "./Tiles.svelte";
-    import Controls from "./Controls.svelte";
-    import Stats from "./Stats.svelte";
-    import Credits from "./Credits.svelte";
-    import Saves from "./Saves.svelte";
-
-    // for stats
-    export let avgms;
-    export let ant;
+    import Tiles from "./page/Tiles.svelte";
+    import Controls from "./page/Controls.svelte";
+    import Credits from "./page/Credits.svelte";
+    import Saves from "./page/Saves.svelte";
 
     let page = 0;
 </script>
@@ -19,7 +14,6 @@
     <p class="button" on:click={() => page = 3}>Settings</p>
     <p class="button" on:click={() => page = 4}>About</p>
 <!--    <p class="button" on:click={() => page = 5}>Debug</p>-->
-    <Stats avgms={avgms} ant={ant}/>
 </div>
 <div>
         <div class:hidden={page !== 0} class="blockly" id="blockly" style="width: 1000px; height: 800px"></div>

@@ -1,16 +1,11 @@
 <script lang="ts">
-    import Game from "../ant/game";
-    import Tile from "./Tile.svelte";
-    import { newTileEvent, updateTileEvent } from "../ant";
+    import Game from "../../ant/game";
+    import Tile from "../Tile.svelte";
+    import { newTileEvent, updateTileEvent } from "../../ant";
     import { onMount } from "svelte";
-
-    const randomColor = () => [~~(Math.random()*255),~~(Math.random()*255),~~(Math.random()*255)]
 
     let x;
     const addTile = () => {
-        const newTile = Game.addTile(randomColor(), ["turn left"]);
-        // tiles1 = Array.from(Game.tiles.values());
-
         window.dispatchEvent(updateTileEvent)
         window.dispatchEvent(newTileEvent)
         Game.restart();

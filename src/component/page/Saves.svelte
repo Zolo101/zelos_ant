@@ -1,10 +1,10 @@
 <script lang="ts">
-    import Game from "../ant/game";
+    import Game from "../../ant/game";
     import { liveQuery } from "dexie";
-    import { db } from "../ant/db";
-    import Screen from "./Screen.svelte";
-    import Line from "./Line.svelte";
-    import Save from "../ant/save";
+    import { db } from "../../ant/db";
+    import Screen from "../Screen.svelte";
+    import Line from "../Line.svelte";
+    import Save from "../../ant/save";
 
     const saves = liveQuery(() => db.saves.toArray())
     const dateOptions = {day: "numeric", month: "long", year: "numeric"}
@@ -38,7 +38,7 @@
     {#if $saves}
         {#each $saves as save(save.id)}
             <div class="save" on:click={() => loadSave(save)}>
-                <Screen id={save.id} image={save.image} width={800} height={800} scale={0.16} sx={340} sy={320}/>
+                <Screen id={save.id} src={save.src} width={800} height={800} scale={0.16} sx={340} sy={320}/>
                 <p class="save-name" style="background-color: {fColour(save.id)}; color: {bColour(save.id)}">{save.name}</p>
                 <p class="save-date">{save.date.toLocaleDateString("en-GB", dateOptions)}</p>
                 <div class="save-delete">
