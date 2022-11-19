@@ -12,15 +12,22 @@ import {
     turnJSON
 } from "./blockly";
 import type { WorkspaceSvg } from "core/workspace_svg";
+import Renderer from "./render/webgl2";
 
+export let canvas: HTMLCanvasElement;
 export let ctx: CanvasRenderingContext2D;
+export let gl2: WebGL2RenderingContext;
 export let newTileEvent = new Event("newTile");
 // TODO: Temporary
 export let updateTileEvent = new Event("updateTile");
 export let workspace: WorkspaceSvg;
+export let renderer: Renderer;
 
-export function main(ctx_real: CanvasRenderingContext2D) {
-    ctx = ctx_real
+export function main(canvasElement: HTMLCanvasElement, ctx_2D: CanvasRenderingContext2D, gl2_2D: WebGL2RenderingContext) {
+    canvas = canvasElement;
+    ctx = ctx_2D
+    gl2 = gl2_2D
+    renderer = new Renderer(gl2)
     Game.clear();
 
     Game.addTile([255, 255, 255], ["turn right"]);
@@ -213,12 +220,12 @@ export function main(ctx_real: CanvasRenderingContext2D) {
                 break;
         }
     })
-
     window.requestAnimationFrame(frame)
 }
 
 export function frame() {
     if (!Game.updateInProgress && !Game.paused) Game.tick();
+    renderer.render();
 
     window.requestAnimationFrame(frame)
 }
@@ -235,8 +242,4 @@ export function iterate() {
 
         Game.board.incrementCell(oldPos.x, oldPos.y)
     }
-}
-
-export function createImage(ctx: CanvasRenderingContext2D, data: Uint8ClampedArray, width: number, height: number, sx: number = 0, sy: number = 0) {
-    ctx.putImageData(new ImageData(data, width, height), sx, sy)
 }

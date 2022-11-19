@@ -1,7 +1,7 @@
 import Board from "./board";
 import Tile from "./tile";
 import { writable } from "svelte/store";
-import { createImage, ctx, iterate, updateTileEvent, workspace } from "./index";
+import { canvas, iterate, renderer, updateTileEvent, workspace } from "./index";
 import Ant from "./ant";
 import Blockly from "blockly";
 import Save from "./save";
@@ -18,7 +18,7 @@ class Game {
     static alertText = writable("")
     static oldTiles: [number, number][] = []
     static updateInProgress: boolean = false
-    static fps = writable(0)
+    static fpsHistory: number[] = []
 
 
     static paused: boolean = false
@@ -36,11 +36,18 @@ class Game {
         Game.tiles = []
     }
 
+    static takePicture() {
+        renderer.render();
+        return canvas.toDataURL();
+    }
+
     static saveSnapshot() {
         // save the current state of everything
         let name = prompt("Name your save")?.trim()
         if (!name) name = "Untitled Save"
-        const save = new Save(name, Blockly.serialization.workspaces.save(workspace), Game.tiles, Game.board.output())
+
+
+        const save = new Save(name, Blockly.serialization.workspaces.save(workspace), Game.tiles, Game.takePicture())
         addSave(save).then(() => Game.alertText.set("Rules saved!"))
     }
 
@@ -48,6 +55,7 @@ class Game {
         Game.tiles = save.tile
         Game.colours = save.tile.map(t => t.colour)
         Blockly.serialization.workspaces.load(save.blockly, workspace)
+        renderer.updateColours()
         this.restart()
         window.dispatchEvent(updateTileEvent)
     }
@@ -86,16 +94,25 @@ class Game {
 
         for (let i = 0; i < Game.iterationsPerTick; i++) iterate()
         Game.iterations += Game.iterationsPerTick
-        createImage(ctx, Game.board.output(), Game.board.width, Game.board.height)
+        renderer.tiles = Game.board.cells
 
-        Game.fps.set(performance.now() - pn1);
+        Game.pushHistory(performance.now() - pn1);
+
+
         Game.updateInProgress = false;
+    }
+
+    static pushHistory(time: number) {
+        Game.fpsHistory.push(time)
+
+        if (Game.fpsHistory.length > 60) Game.fpsHistory.shift()
     }
 
     static addTile(color: Tile["colour"], triggers: Tile["triggers"]) {
         const newTile = new Tile(color, triggers)
         Game.tiles.push(newTile)
         Game.colours.push(newTile.colour)
+        renderer.updateColours()
 
         return newTile
     }

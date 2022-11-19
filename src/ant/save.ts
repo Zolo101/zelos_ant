@@ -8,14 +8,14 @@ class Save {
     // TODO: Rename as tiles
     tile: Tile[]
     // TODO: Compress in the future (images are currently 2.56MB)
-    image: Uint8ClampedArray
+    src: string
 
-    constructor(name: string, blockly: {}, tile: Tile[], image: Uint8ClampedArray) {
+    constructor(name: string, blockly: {}, tile: Tile[], src: string) {
         this.name = name
         this.date = new Date()
         this.blockly = blockly;
         this.tile = tile;
-        this.image = image;
+        this.src = src;
     }
 }
 
