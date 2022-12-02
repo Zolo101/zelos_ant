@@ -4,8 +4,11 @@
     import { newTileEvent, updateTileEvent } from "../../ant";
     import { onMount } from "svelte";
 
+    const randomColour = () => [~~(Math.random()*255),~~(Math.random()*255),~~(Math.random()*255)]
+
     let x;
     const addTile = () => {
+        Game.addTile(randomColour(), ["turn left"]);
         window.dispatchEvent(updateTileEvent)
         window.dispatchEvent(newTileEvent)
         Game.restart();

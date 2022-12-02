@@ -42,7 +42,9 @@ export default class Renderer {
     }
 
     updateColours() {
-        twgl.setTextureFromArray(this.gl, this.colours, Game.colours.flat(), {format: this.gl.RGB})
+        let texture = new Uint8ClampedArray(3 * 1024)
+        texture.set(Game.colours.flat(), 0)
+        twgl.setTextureFromArray(this.gl, this.colours, texture, {format: this.gl.RGB, width: 1024, height: 1})
     }
 
     render() {
