@@ -9,8 +9,8 @@
         const canvas = document.getElementById("canvas") as HTMLCanvasElement;
         const ctx = canvas.getContext("canvas") as CanvasRenderingContext2D;
         const gl2 = canvas.getContext("webgl2") as WebGL2RenderingContext;
-        main(canvas, ctx, gl2)
-    })
+        main(canvas, ctx, gl2);
+    });
 </script>
 
 <div class="main">
@@ -19,12 +19,12 @@
             <canvas id="canvas" width="800" height="800"></canvas>
         </div>
         <div class="right">
-            <Stats/>
-            <Tab/>
+            <Stats />
+            <Tab />
         </div>
     </div>
 </div>
-<Alert/>
+<Alert />
 
 <style>
     .main {

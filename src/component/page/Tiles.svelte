@@ -4,13 +4,17 @@
     import { newTileEvent, updateTileEvent } from "../../ant";
     import { onMount } from "svelte";
 
-    const randomColour = () => [~~(Math.random()*255),~~(Math.random()*255),~~(Math.random()*255)]
+    const randomColour = () => [
+        ~~(Math.random() * 255),
+        ~~(Math.random() * 255),
+        ~~(Math.random() * 255)
+    ];
 
     let x;
     const addTile = () => {
         Game.addTile(randomColour(), ["turn left"]);
-        window.dispatchEvent(updateTileEvent)
-        window.dispatchEvent(newTileEvent)
+        window.dispatchEvent(updateTileEvent);
+        window.dispatchEvent(newTileEvent);
         Game.restart();
     };
 
@@ -18,17 +22,17 @@
         // Must be at least one tile
         if (Game.tiles.length - 1 === 0) return;
 
-        Game.tiles.splice(index, 1)
-        Game.colours.splice(index, 1)
+        Game.tiles.splice(index, 1);
+        Game.colours.splice(index, 1);
         // tiles1 = Array.from(Game.tiles.values());
-        window.dispatchEvent(updateTileEvent)
+        window.dispatchEvent(updateTileEvent);
         Game.restart();
     };
 
     // TODO: Temporary
-    window.addEventListener("updateTile", () =>  x = (x + 1) & 3)
+    window.addEventListener("updateTile", () => (x = (x + 1) & 3));
 
-    onMount(() => window.dispatchEvent(updateTileEvent))
+    onMount(() => window.dispatchEvent(updateTileEvent));
 </script>
 
 <div class="tiles">
@@ -36,9 +40,9 @@
         {#each Game.tiles as tile, index}
             <div class="tile-container">
                 <div class="remove" on:click={() => removeTile(index)}>X</div>
-                <Tile {tile} {index}/>
+                <Tile {tile} {index} />
             </div>
-<!--            <Line/>-->
+            <!--            <Line/>-->
         {/each}
     {/key}
 </div>

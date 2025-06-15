@@ -3,7 +3,7 @@ import Save from "./save";
 import Game from "./game";
 
 class ZADexie extends Dexie {
-    saves!: Table<Save>
+    saves!: Table<Save>;
 
     constructor() {
         super("zelos-ant");
@@ -17,8 +17,8 @@ export const db = new ZADexie();
 
 export async function addSave(save: Save) {
     try {
-        await db.saves.add(save)
+        await db.saves.add(save);
     } catch (err) {
-        Game.alertText.set(`Save failed! ${err}`)
+        Game.alertText.set(`Save failed! ${err}`);
     }
 }

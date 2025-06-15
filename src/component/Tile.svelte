@@ -3,7 +3,7 @@
 
     export let tile: Tile;
     export let index: number;
-    let rgbColor = `rgb(${tile.colour[0]},${tile.colour[1]},${tile.colour[2]})`
+    let rgbColor = `rgb(${tile.colour[0]},${tile.colour[1]},${tile.colour[2]})`;
 </script>
 
 <div class="tile" style="background-color: {rgbColor}">

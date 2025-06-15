@@ -3,12 +3,12 @@
 
     let show = false;
     let text = Game.alertText;
-    text.subscribe((v) => show = !!v)
+    text.subscribe((v) => (show = !!v));
 
     const close = () => {
-        show = false
+        show = false;
         text.set("");
-    }
+    };
 </script>
 
 <div class="background" class:hidden={!show}></div>

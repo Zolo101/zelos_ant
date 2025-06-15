@@ -1,69 +1,58 @@
-export const [turnJSON, lookJSON, onJSON, moveJSON, iterationJSON, iterationOnEveryJSON, createAntJSON, cloneAntJSON] = [{
-        "type": "turn",
-        "message0": "Turn %1",
-        "args0": [
+export const [
+    turnJSON,
+    lookJSON,
+    onJSON,
+    moveJSON,
+    iterationJSON,
+    iterationOnEveryJSON,
+    createAntJSON,
+    cloneAntJSON
+] = [
+    {
+        type: "turn",
+        message0: "Turn %1",
+        args0: [
             {
-                "type": "field_dropdown",
-                "name": "Directions",
-                "options": [
-                    [
-                        "left",
-                        "Left"
-                    ],
-                    [
-                        "right",
-                        "Right"
-                    ],
-                    [
-                        "back",
-                        "Back"
-                    ]
+                type: "field_dropdown",
+                name: "Directions",
+                options: [
+                    ["left", "Left"],
+                    ["right", "Right"],
+                    ["back", "Back"]
                 ]
             }
         ],
-        "previousStatement": null,
-        "nextStatement": null,
-        "colour": 195,
-        "tooltip": "",
-        "helpUrl": ""
+        previousStatement: null,
+        nextStatement: null,
+        colour: 195,
+        tooltip: "",
+        helpUrl: ""
     },
     {
-        "type": "look",
-        "message0": "Look %1",
-        "args0": [
+        type: "look",
+        message0: "Look %1",
+        args0: [
             {
-                "type": "field_dropdown",
-                "name": "Directions",
-                "options": [
-                    [
-                        "north",
-                        "North"
-                    ],
-                    [
-                        "east",
-                        "East"
-                    ],
-                    [
-                        "south",
-                        "South"
-                    ],
-                    [
-                        "west",
-                        "West"
-                    ]
+                type: "field_dropdown",
+                name: "Directions",
+                options: [
+                    ["north", "North"],
+                    ["east", "East"],
+                    ["south", "South"],
+                    ["west", "West"]
                 ]
             }
         ],
-        "previousStatement": null,
-        "nextStatement": null,
-        "colour": 230,
-        "tooltip": "",
-        "helpUrl": ""
+        previousStatement: null,
+        nextStatement: null,
+        colour: 230,
+        tooltip: "",
+        helpUrl: ""
     },
     {
-        "kind": "block",
-        "type": "on",
-        "message0": "On Tile %1 %2 %3",
+        kind: "block",
+        type: "on",
+        message0: "On Tile %1 %2 %3",
         // "inputs": {
         //     "TileID": {
         //         "block": {
@@ -74,683 +63,683 @@ export const [turnJSON, lookJSON, onJSON, moveJSON, iterationJSON, iterationOnEv
         //         }
         //     }
         // },
-        "args0": [
+        args0: [
             {
-                "type": "field_number",
-                "name": "TileID",
-                "value": 0,
-                "min": 0
+                type: "field_number",
+                name: "TileID",
+                value: 0,
+                min: 0
             },
             {
-                "type": "input_dummy"
+                type: "input_dummy"
             },
             {
-                "type": "input_statement",
-                "name": "NAME"
+                type: "input_statement",
+                name: "NAME"
             }
         ],
-        "colour": 0,
-        "tooltip": "",
-        "helpUrl": ""
+        colour: 0,
+        tooltip: "",
+        helpUrl: ""
     },
     {
-        "type": "move",
-        "message0": "Move forward again by %1",
-        "args0": [
+        type: "move",
+        message0: "Move forward again by %1",
+        args0: [
             {
-                "type": "input_value",
-                "name": "NAME",
-                "check": "Number"
+                type: "input_value",
+                name: "NAME",
+                check: "Number"
             }
         ],
-        "previousStatement": null,
-        "nextStatement": null,
-        "colour": 230,
-        "tooltip": "",
-        "helpUrl": ""
+        previousStatement: null,
+        nextStatement: null,
+        colour: 230,
+        tooltip: "",
+        helpUrl: ""
     },
     {
-        "type": "iteration",
-        "message0": "On each iteration %1 %2",
-        "args0": [
+        type: "iteration",
+        message0: "On each iteration %1 %2",
+        args0: [
             {
-                "type": "input_dummy"
+                type: "input_dummy"
             },
             {
-                "type": "input_statement",
-                "name": "NAME"
+                type: "input_statement",
+                name: "NAME"
             }
         ],
-        "colour": 0,
-        "tooltip": "",
-        "helpUrl": ""
+        colour: 0,
+        tooltip: "",
+        helpUrl: ""
     },
     {
-        "type": "iteration_onevery",
-        "message0": "On every %1 th iteration %2 %3",
-        "args0": [
+        type: "iteration_onevery",
+        message0: "On every %1 th iteration %2 %3",
+        args0: [
             {
-                "type": "field_number",
-                "name": "NAME",
-                "value": 0,
-                "min": 1
+                type: "field_number",
+                name: "NAME",
+                value: 0,
+                min: 1
             },
             {
-                "type": "input_dummy"
+                type: "input_dummy"
             },
             {
-                "type": "input_statement",
-                "name": "NAME"
+                type: "input_statement",
+                name: "NAME"
             }
         ],
-        "colour": 0,
-        "tooltip": "",
-        "helpUrl": ""
+        colour: 0,
+        tooltip: "",
+        helpUrl: ""
     },
     {
-        "type": "create_ant",
-        "message0": "Create ant at X %1 Y %2",
-        "args0": [
+        type: "create_ant",
+        message0: "Create ant at X %1 Y %2",
+        args0: [
             {
-                "type": "input_value",
-                "name": "X",
-                "check": "Number",
-                "shadow": {
-                    "type": "X",
-                    "fields": {
-                        "NUM": 1
+                type: "input_value",
+                name: "X",
+                check: "Number",
+                shadow: {
+                    type: "X",
+                    fields: {
+                        NUM: 1
                     }
                 }
             },
             {
-                "type": "input_value",
-                "name": "Y",
-                "check": "Number",
-                "shadow": {
-                    "type": "Y",
-                    "fields": {
-                        "NUM": 1
+                type: "input_value",
+                name: "Y",
+                check: "Number",
+                shadow: {
+                    type: "Y",
+                    fields: {
+                        NUM: 1
                     }
                 }
             }
         ],
-        "inputsInline": true,
-        "previousStatement": null,
-        "nextStatement": null,
-        "colour": 90,
-        "tooltip": "",
-        "helpUrl": ""
+        inputsInline: true,
+        previousStatement: null,
+        nextStatement: null,
+        colour: 90,
+        tooltip: "",
+        helpUrl: ""
     },
     {
-        "type": "create_ant_on_ant",
-        "message0": "Clone ant",
-        "previousStatement": null,
-        "nextStatement": null,
-        "colour": 90,
-        "tooltip": "",
-        "helpUrl": ""
+        type: "create_ant_on_ant",
+        message0: "Clone ant",
+        previousStatement: null,
+        nextStatement: null,
+        colour: 90,
+        tooltip: "",
+        helpUrl: ""
     }
-]
+];
 
 export const toolbox = {
     contents: [
         {
-            kind: 'CATEGORY',
+            kind: "CATEGORY",
             contents: [
                 {
-                    "kind": "block",
-                    "type": "turn"
+                    kind: "block",
+                    type: "turn"
                 },
                 {
-                    "kind": "block",
-                    "type": "look"
+                    kind: "block",
+                    type: "look"
                 },
                 {
-                    "kind": "block",
-                    "type": "move",
-                    "inputs": {
-                        "NAME": {
-                            "shadow": {
-                                "type": "math_number",
-                                "fields": {
-                                    "NUM": 1
+                    kind: "block",
+                    type: "move",
+                    inputs: {
+                        NAME: {
+                            shadow: {
+                                type: "math_number",
+                                fields: {
+                                    NUM: 1
                                 }
                             }
-                        },
-                    },
+                        }
+                    }
                 },
                 {
-                    "kind": "block",
-                    "type": "on"
+                    kind: "block",
+                    type: "on"
                 },
                 {
-                    "kind": "block",
-                    "type": "iteration"
+                    kind: "block",
+                    type: "iteration"
                 },
                 // {
                 //     "kind": "block",
                 //     "type": "iteration_onevery"
                 // },
                 {
-                    "kind": "block",
-                    "type": "create_ant",
-                    "inputs": {
-                        "X": {
-                            "shadow": {
-                                "type": "math_number",
-                                "fields": {
-                                    "NUM": 1
+                    kind: "block",
+                    type: "create_ant",
+                    inputs: {
+                        X: {
+                            shadow: {
+                                type: "math_number",
+                                fields: {
+                                    NUM: 1
                                 }
                             }
                         },
-                        "Y": {
-                            "shadow": {
-                                "type": "math_number",
-                                "fields": {
-                                    "NUM": 1
+                        Y: {
+                            shadow: {
+                                type: "math_number",
+                                fields: {
+                                    NUM: 1
                                 }
                             }
                         }
-                    },
-                },
+                    }
+                }
                 // {
                 //     "kind": "block",
                 //     "type": "create_ant_on_ant"
                 // },
             ],
-            id: 'catZA',
-            colour: '0',
-            name: "Zelo's Ant",
+            id: "catZA",
+            colour: "0",
+            name: "Zelo's Ant"
         },
         {
-            kind: 'SEP',
+            kind: "SEP"
         },
         {
-            kind: 'CATEGORY',
+            kind: "CATEGORY",
             contents: [
                 {
-                    kind: 'BLOCK',
+                    kind: "BLOCK",
                     blockxml: '<block type="controls_if"></block>',
-                    type: 'controls_if',
+                    type: "controls_if"
                 },
                 {
-                    kind: 'BLOCK',
+                    kind: "BLOCK",
                     blockxml: '<block type="logic_compare"></block>',
-                    type: 'logic_compare',
+                    type: "logic_compare"
                 },
                 {
-                    kind: 'BLOCK',
+                    kind: "BLOCK",
                     blockxml: '<block type="logic_operation"></block>',
-                    type: 'logic_operation',
+                    type: "logic_operation"
                 },
                 {
-                    kind: 'BLOCK',
+                    kind: "BLOCK",
                     blockxml: '<block type="logic_negate"></block>',
-                    type: 'logic_negate',
+                    type: "logic_negate"
                 },
                 {
-                    kind: 'BLOCK',
+                    kind: "BLOCK",
                     blockxml: '<block type="logic_boolean"></block>',
-                    type: 'logic_boolean',
+                    type: "logic_boolean"
                 },
                 {
-                    kind: 'BLOCK',
+                    kind: "BLOCK",
                     blockxml: '<block type="logic_null"></block>',
-                    type: 'logic_null',
+                    type: "logic_null"
                 },
                 {
-                    kind: 'BLOCK',
+                    kind: "BLOCK",
                     blockxml: '<block type="logic_ternary"></block>',
-                    type: 'logic_ternary',
-                },
+                    type: "logic_ternary"
+                }
             ],
-            id: 'catLogic',
-            colour: '210',
-            name: 'Logic',
+            id: "catLogic",
+            colour: "210",
+            name: "Logic"
         },
         {
-            kind: 'CATEGORY',
+            kind: "CATEGORY",
             contents: [
                 {
-                    kind: 'BLOCK',
+                    kind: "BLOCK",
                     blockxml:
                         '<block type="controls_repeat_ext">\n          <value name="TIMES">\n            <shadow type="math_number">\n              <field name="NUM">10</field>\n            </shadow>\n          </value>\n        </block>',
-                    type: 'controls_repeat_ext',
+                    type: "controls_repeat_ext"
                 },
                 {
-                    kind: 'BLOCK',
+                    kind: "BLOCK",
                     blockxml: '<block type="controls_whileUntil"></block>',
-                    type: 'controls_whileUntil',
+                    type: "controls_whileUntil"
                 },
                 {
-                    kind: 'BLOCK',
+                    kind: "BLOCK",
                     blockxml:
                         '<block type="controls_for">\n          <value name="FROM">\n            <shadow type="math_number">\n              <field name="NUM">1</field>\n            </shadow>\n          </value>\n          <value name="TO">\n            <shadow type="math_number">\n              <field name="NUM">10</field>\n            </shadow>\n          </value>\n          <value name="BY">\n            <shadow type="math_number">\n              <field name="NUM">1</field>\n            </shadow>\n          </value>\n        </block>',
-                    type: 'controls_for',
+                    type: "controls_for"
                 },
                 {
-                    kind: 'BLOCK',
+                    kind: "BLOCK",
                     blockxml: '<block type="controls_forEach"></block>',
-                    type: 'controls_forEach',
+                    type: "controls_forEach"
                 },
                 {
-                    kind: 'BLOCK',
+                    kind: "BLOCK",
                     blockxml: '<block type="controls_flow_statements"></block>',
-                    type: 'controls_flow_statements',
-                },
+                    type: "controls_flow_statements"
+                }
             ],
-            id: 'catLoops',
-            colour: '120',
-            name: 'Loops',
+            id: "catLoops",
+            colour: "120",
+            name: "Loops"
         },
         {
-            kind: 'CATEGORY',
+            kind: "CATEGORY",
             contents: [
                 {
-                    kind: 'BLOCK',
+                    kind: "BLOCK",
                     blockxml: '<block type="math_number"></block>',
-                    type: 'math_number',
+                    type: "math_number"
                 },
                 {
-                    kind: 'BLOCK',
+                    kind: "BLOCK",
                     blockxml:
                         '<block type="math_arithmetic">\n          <value name="A">\n            <shadow type="math_number">\n              <field name="NUM">1</field>\n            </shadow>\n          </value>\n          <value name="B">\n            <shadow type="math_number">\n              <field name="NUM">1</field>\n            </shadow>\n          </value>\n        </block>',
-                    type: 'math_arithmetic',
+                    type: "math_arithmetic"
                 },
                 {
-                    kind: 'BLOCK',
+                    kind: "BLOCK",
                     blockxml:
                         '<block type="math_single">\n          <value name="NUM">\n            <shadow type="math_number">\n              <field name="NUM">9</field>\n            </shadow>\n          </value>\n        </block>',
-                    type: 'math_single',
+                    type: "math_single"
                 },
                 {
-                    kind: 'BLOCK',
+                    kind: "BLOCK",
                     blockxml:
                         '<block type="math_trig">\n          <value name="NUM">\n            <shadow type="math_number">\n              <field name="NUM">45</field>\n            </shadow>\n          </value>\n        </block>',
-                    type: 'math_trig',
+                    type: "math_trig"
                 },
                 {
-                    kind: 'BLOCK',
+                    kind: "BLOCK",
                     blockxml: '<block type="math_constant"></block>',
-                    type: 'math_constant',
+                    type: "math_constant"
                 },
                 {
-                    kind: 'BLOCK',
+                    kind: "BLOCK",
                     blockxml:
                         '<block type="math_number_property">\n          <value name="NUMBER_TO_CHECK">\n            <shadow type="math_number">\n              <field name="NUM">0</field>\n            </shadow>\n          </value>\n        </block>',
-                    type: 'math_number_property',
+                    type: "math_number_property"
                 },
                 {
-                    kind: 'BLOCK',
+                    kind: "BLOCK",
                     blockxml:
                         '<block type="math_change">\n          <value name="DELTA">\n            <shadow type="math_number">\n              <field name="NUM">1</field>\n            </shadow>\n          </value>\n        </block>',
-                    type: 'math_change',
+                    type: "math_change"
                 },
                 {
-                    kind: 'BLOCK',
+                    kind: "BLOCK",
                     blockxml:
                         '<block type="math_round">\n          <value name="NUM">\n            <shadow type="math_number">\n              <field name="NUM">3.1</field>\n            </shadow>\n          </value>\n        </block>',
-                    type: 'math_round',
+                    type: "math_round"
                 },
                 {
-                    kind: 'BLOCK',
+                    kind: "BLOCK",
                     blockxml: '<block type="math_on_list"></block>',
-                    type: 'math_on_list',
+                    type: "math_on_list"
                 },
                 {
-                    kind: 'BLOCK',
+                    kind: "BLOCK",
                     blockxml:
                         '<block type="math_modulo">\n          <value name="DIVIDEND">\n            <shadow type="math_number">\n              <field name="NUM">64</field>\n            </shadow>\n          </value>\n          <value name="DIVISOR">\n            <shadow type="math_number">\n              <field name="NUM">10</field>\n            </shadow>\n          </value>\n        </block>',
-                    type: 'math_modulo',
+                    type: "math_modulo"
                 },
                 {
-                    kind: 'BLOCK',
+                    kind: "BLOCK",
                     blockxml:
                         '<block type="math_constrain">\n          <value name="VALUE">\n            <shadow type="math_number">\n              <field name="NUM">50</field>\n            </shadow>\n          </value>\n          <value name="LOW">\n            <shadow type="math_number">\n              <field name="NUM">1</field>\n            </shadow>\n          </value>\n          <value name="HIGH">\n            <shadow type="math_number">\n              <field name="NUM">100</field>\n            </shadow>\n          </value>\n        </block>',
-                    type: 'math_constrain',
+                    type: "math_constrain"
                 },
                 {
-                    kind: 'BLOCK',
+                    kind: "BLOCK",
                     blockxml:
                         '<block type="math_random_int">\n          <value name="FROM">\n            <shadow type="math_number">\n              <field name="NUM">1</field>\n            </shadow>\n          </value>\n          <value name="TO">\n            <shadow type="math_number">\n              <field name="NUM">100</field>\n            </shadow>\n          </value>\n        </block>',
-                    type: 'math_random_int',
+                    type: "math_random_int"
                 },
                 {
-                    kind: 'BLOCK',
+                    kind: "BLOCK",
                     blockxml: '<block type="math_random_float"></block>',
-                    type: 'math_random_float',
-                },
+                    type: "math_random_float"
+                }
             ],
-            id: 'catMath',
-            colour: '230',
-            name: 'Math',
+            id: "catMath",
+            colour: "230",
+            name: "Math"
         },
         {
-            kind: 'CATEGORY',
+            kind: "CATEGORY",
             contents: [
                 {
-                    kind: 'BLOCK',
+                    kind: "BLOCK",
                     blockxml: '<block type="text"></block>',
-                    type: 'text',
+                    type: "text"
                 },
                 {
-                    kind: 'BLOCK',
+                    kind: "BLOCK",
                     blockxml: '<block type="text_join"></block>',
-                    type: 'text_join',
+                    type: "text_join"
                 },
                 {
-                    kind: 'BLOCK',
+                    kind: "BLOCK",
                     blockxml:
                         '<block type="text_append">\n          <value name="TEXT">\n            <shadow type="text"></shadow>\n          </value>\n        </block>',
-                    type: 'text_append',
+                    type: "text_append"
                 },
                 {
-                    kind: 'BLOCK',
+                    kind: "BLOCK",
                     blockxml:
                         '<block type="text_length">\n          <value name="VALUE">\n            <shadow type="text">\n              <field name="TEXT">abc</field>\n            </shadow>\n          </value>\n        </block>',
-                    type: 'text_length',
+                    type: "text_length"
                 },
                 {
-                    kind: 'BLOCK',
+                    kind: "BLOCK",
                     blockxml:
                         '<block type="text_isEmpty">\n          <value name="VALUE">\n            <shadow type="text">\n              <field name="TEXT"></field>\n            </shadow>\n          </value>\n        </block>',
-                    type: 'text_isEmpty',
+                    type: "text_isEmpty"
                 },
                 {
-                    kind: 'BLOCK',
+                    kind: "BLOCK",
                     blockxml:
                         '<block type="text_indexOf">\n          <value name="VALUE">\n            <block type="variables_get">\n              <field name="VAR">text</field>\n            </block>\n          </value>\n          <value name="FIND">\n            <shadow type="text">\n              <field name="TEXT">abc</field>\n            </shadow>\n          </value>\n        </block>',
-                    type: 'text_indexOf',
+                    type: "text_indexOf"
                 },
                 {
-                    kind: 'BLOCK',
+                    kind: "BLOCK",
                     blockxml:
                         '<block type="text_charAt">\n          <value name="VALUE">\n            <block type="variables_get">\n              <field name="VAR">text</field>\n            </block>\n          </value>\n        </block>',
-                    type: 'text_charAt',
+                    type: "text_charAt"
                 },
                 {
-                    kind: 'BLOCK',
+                    kind: "BLOCK",
                     blockxml:
                         '<block type="text_getSubstring">\n          <value name="STRING">\n            <block type="variables_get">\n              <field name="VAR">text</field>\n            </block>\n          </value>\n        </block>',
-                    type: 'text_getSubstring',
+                    type: "text_getSubstring"
                 },
                 {
-                    kind: 'BLOCK',
+                    kind: "BLOCK",
                     blockxml:
                         '<block type="text_changeCase">\n          <value name="TEXT">\n            <shadow type="text">\n              <field name="TEXT">abc</field>\n            </shadow>\n          </value>\n        </block>',
-                    type: 'text_changeCase',
+                    type: "text_changeCase"
                 },
                 {
-                    kind: 'BLOCK',
+                    kind: "BLOCK",
                     blockxml:
                         '<block type="text_trim">\n          <value name="TEXT">\n            <shadow type="text">\n              <field name="TEXT">abc</field>\n            </shadow>\n          </value>\n        </block>',
-                    type: 'text_trim',
+                    type: "text_trim"
                 },
                 {
-                    kind: 'BLOCK',
+                    kind: "BLOCK",
                     blockxml:
                         '<block type="text_print">\n          <value name="TEXT">\n            <shadow type="text">\n              <field name="TEXT">abc</field>\n            </shadow>\n          </value>\n        </block>',
-                    type: 'text_print',
+                    type: "text_print"
                 },
                 {
-                    kind: 'BLOCK',
+                    kind: "BLOCK",
                     blockxml:
                         '<block type="text_prompt_ext">\n          <value name="TEXT">\n            <shadow type="text">\n              <field name="TEXT">abc</field>\n            </shadow>\n          </value>\n        </block>',
-                    type: 'text_prompt_ext',
-                },
+                    type: "text_prompt_ext"
+                }
             ],
-            id: 'catText',
-            colour: '160',
-            name: 'Text',
+            id: "catText",
+            colour: "160",
+            name: "Text"
         },
         {
-            kind: 'CATEGORY',
+            kind: "CATEGORY",
             contents: [
                 {
-                    kind: 'BLOCK',
+                    kind: "BLOCK",
                     blockxml:
                         '<block type="lists_create_with">\n          <mutation items="0"></mutation>\n        </block>',
-                    type: 'lists_create_with',
+                    type: "lists_create_with"
                 },
                 {
-                    kind: 'BLOCK',
+                    kind: "BLOCK",
                     blockxml: '<block type="lists_create_with"></block>',
-                    type: 'lists_create_with',
+                    type: "lists_create_with"
                 },
                 {
-                    kind: 'BLOCK',
+                    kind: "BLOCK",
                     blockxml:
                         '<block type="lists_repeat">\n          <value name="NUM">\n            <shadow type="math_number">\n              <field name="NUM">5</field>\n            </shadow>\n          </value>\n        </block>',
-                    type: 'lists_repeat',
+                    type: "lists_repeat"
                 },
                 {
-                    kind: 'BLOCK',
+                    kind: "BLOCK",
                     blockxml: '<block type="lists_length"></block>',
-                    type: 'lists_length',
+                    type: "lists_length"
                 },
                 {
-                    kind: 'BLOCK',
+                    kind: "BLOCK",
                     blockxml: '<block type="lists_isEmpty"></block>',
-                    type: 'lists_isEmpty',
+                    type: "lists_isEmpty"
                 },
                 {
-                    kind: 'BLOCK',
+                    kind: "BLOCK",
                     blockxml:
                         '<block type="lists_indexOf">\n          <value name="VALUE">\n            <block type="variables_get">\n              <field name="VAR">list</field>\n            </block>\n          </value>\n        </block>',
-                    type: 'lists_indexOf',
+                    type: "lists_indexOf"
                 },
                 {
-                    kind: 'BLOCK',
+                    kind: "BLOCK",
                     blockxml:
                         '<block type="lists_getIndex">\n          <value name="VALUE">\n            <block type="variables_get">\n              <field name="VAR">list</field>\n            </block>\n          </value>\n        </block>',
-                    type: 'lists_getIndex',
+                    type: "lists_getIndex"
                 },
                 {
-                    kind: 'BLOCK',
+                    kind: "BLOCK",
                     blockxml:
                         '<block type="lists_setIndex">\n          <value name="LIST">\n            <block type="variables_get">\n              <field name="VAR">list</field>\n            </block>\n          </value>\n        </block>',
-                    type: 'lists_setIndex',
+                    type: "lists_setIndex"
                 },
                 {
-                    kind: 'BLOCK',
+                    kind: "BLOCK",
                     blockxml:
                         '<block type="lists_getSublist">\n          <value name="LIST">\n            <block type="variables_get">\n              <field name="VAR">list</field>\n            </block>\n          </value>\n        </block>',
-                    type: 'lists_getSublist',
+                    type: "lists_getSublist"
                 },
                 {
-                    kind: 'BLOCK',
+                    kind: "BLOCK",
                     blockxml:
                         '<block type="lists_split">\n          <value name="DELIM">\n            <shadow type="text">\n              <field name="TEXT">,</field>\n            </shadow>\n          </value>\n        </block>',
-                    type: 'lists_split',
+                    type: "lists_split"
                 },
                 {
-                    kind: 'BLOCK',
+                    kind: "BLOCK",
                     blockxml: '<block type="lists_sort"></block>',
-                    type: 'lists_sort',
-                },
+                    type: "lists_sort"
+                }
             ],
-            id: 'catLists',
-            colour: '260',
-            name: 'Lists',
+            id: "catLists",
+            colour: "260",
+            name: "Lists"
         },
         {
-            kind: 'CATEGORY',
+            kind: "CATEGORY",
             contents: [
                 {
-                    kind: 'BLOCK',
+                    kind: "BLOCK",
                     blockxml: '<block type="colour_picker"></block>',
-                    type: 'colour_picker',
+                    type: "colour_picker"
                 },
                 {
-                    kind: 'BLOCK',
+                    kind: "BLOCK",
                     blockxml: '<block type="colour_random"></block>',
-                    type: 'colour_random',
+                    type: "colour_random"
                 },
                 {
-                    kind: 'BLOCK',
+                    kind: "BLOCK",
                     blockxml:
                         '<block type="colour_rgb">\n          <value name="RED">\n            <shadow type="math_number">\n              <field name="NUM">100</field>\n            </shadow>\n          </value>\n          <value name="GREEN">\n            <shadow type="math_number">\n              <field name="NUM">50</field>\n            </shadow>\n          </value>\n          <value name="BLUE">\n            <shadow type="math_number">\n              <field name="NUM">0</field>\n            </shadow>\n          </value>\n        </block>',
-                    type: 'colour_rgb',
+                    type: "colour_rgb"
                 },
                 {
-                    kind: 'BLOCK',
+                    kind: "BLOCK",
                     blockxml:
                         '<block type="colour_blend">\n          <value name="COLOUR1">\n            <shadow type="colour_picker">\n              <field name="COLOUR">#ff0000</field>\n            </shadow>\n          </value>\n          <value name="COLOUR2">\n            <shadow type="colour_picker">\n              <field name="COLOUR">#3333ff</field>\n            </shadow>\n          </value>\n          <value name="RATIO">\n            <shadow type="math_number">\n              <field name="NUM">0.5</field>\n            </shadow>\n          </value>\n        </block>',
-                    type: 'colour_blend',
-                },
+                    type: "colour_blend"
+                }
             ],
-            id: 'catColour',
-            colour: '20',
-            name: 'Color',
+            id: "catColour",
+            colour: "20",
+            name: "Color"
         },
         {
-            kind: 'SEP',
+            kind: "SEP"
         },
         {
-            kind: 'CATEGORY',
-            id: 'catVariables',
-            colour: '330',
-            custom: 'VARIABLE',
-            name: 'Variables',
+            kind: "CATEGORY",
+            id: "catVariables",
+            colour: "330",
+            custom: "VARIABLE",
+            name: "Variables"
         },
         {
-            kind: 'CATEGORY',
-            id: 'catFunctions',
-            colour: '290',
-            custom: 'PROCEDURE',
-            name: 'Functions',
-        },
+            kind: "CATEGORY",
+            id: "catFunctions",
+            colour: "290",
+            custom: "PROCEDURE",
+            name: "Functions"
+        }
     ],
-    id: 'toolbox',
-    style: 'display: none',
+    id: "toolbox",
+    style: "display: none"
 };
 export const toolbox2 = {
-    "kind": "flyoutToolbox",
-    "contents": [
+    kind: "flyoutToolbox",
+    contents: [
         {
-            "kind": "block",
-            "type": "turn"
+            kind: "block",
+            type: "turn"
         },
         {
-            "kind": "block",
-            "type": "look"
+            kind: "block",
+            type: "look"
         },
         {
-            "kind": "block",
-            "type": "move",
-            "inputs": {
-                "NAME": {
-                    "shadow": {
-                        "type": "math_number",
-                        "fields": {
-                            "NUM": 1
+            kind: "block",
+            type: "move",
+            inputs: {
+                NAME: {
+                    shadow: {
+                        type: "math_number",
+                        fields: {
+                            NUM: 1
                         }
                     }
-                },
-            },
+                }
+            }
         },
         {
-            "kind": "block",
-            "type": "on"
+            kind: "block",
+            type: "on"
         },
         {
-            "kind": "block",
-            "type": "iteration"
+            kind: "block",
+            type: "iteration"
         },
         // {
         //     "kind": "block",
         //     "type": "iteration_onevery"
         // },
         {
-            "kind": "block",
-            "type": "create_ant",
-            "inputs": {
-                "X": {
-                    "shadow": {
-                        "type": "math_number",
-                        "fields": {
-                            "NUM": 1
+            kind: "block",
+            type: "create_ant",
+            inputs: {
+                X: {
+                    shadow: {
+                        type: "math_number",
+                        fields: {
+                            NUM: 1
                         }
                     }
                 },
-                "Y": {
-                    "shadow": {
-                        "type": "math_number",
-                        "fields": {
-                            "NUM": 1
+                Y: {
+                    shadow: {
+                        type: "math_number",
+                        fields: {
+                            NUM: 1
                         }
                     }
                 }
-            },
-        },
+            }
+        }
         // {
         //     "kind": "block",
         //     "type": "create_ant_on_ant"
         // },
     ]
-}
+};
 
 export const defaultBlockly = {
-    "blocks": {
-        "languageVersion": 0,
-        "blocks": [
+    blocks: {
+        languageVersion: 0,
+        blocks: [
             {
-                "type": "on",
-                "id": "JW)wt9rXJU(082s^cc8c",
-                "x": 13,
-                "y": 13,
-                "fields": {
-                    "TileID": 0
+                type: "on",
+                id: "JW)wt9rXJU(082s^cc8c",
+                x: 13,
+                y: 13,
+                fields: {
+                    TileID: 0
                 },
-                "inputs": {
-                    "NAME": {
-                        "block": {
-                            "type": "turn",
-                            "id": "F.E^.B=@3a~%y1rYLeav",
-                            "fields": {
-                                "Directions": "Left"
+                inputs: {
+                    NAME: {
+                        block: {
+                            type: "turn",
+                            id: "F.E^.B=@3a~%y1rYLeav",
+                            fields: {
+                                Directions: "Left"
                             }
                         }
                     }
                 }
             },
             {
-                "type": "on",
-                "id": "AC}UBqRO5m[guT:acv()",
-                "x": 13,
-                "y": 188,
-                "fields": {
-                    "TileID": 1
+                type: "on",
+                id: "AC}UBqRO5m[guT:acv()",
+                x: 13,
+                y: 188,
+                fields: {
+                    TileID: 1
                 },
-                "inputs": {
-                    "NAME": {
-                        "block": {
-                            "type": "turn",
-                            "id": "Z:^vs-$Lb(U8n!V7:qHU",
-                            "fields": {
-                                "Directions": "Right"
+                inputs: {
+                    NAME: {
+                        block: {
+                            type: "turn",
+                            id: "Z:^vs-$Lb(U8n!V7:qHU",
+                            fields: {
+                                Directions: "Right"
                             }
                         }
                     }
                 }
             },
             {
-                "type": "iteration",
-                "id": "!TY[uZF;3}fNpLxb=u^/",
-                "x": 13,
-                "y": 363,
-                "inputs": {
-                    "NAME": {
-                        "block": {
-                            "type": "move",
-                            "id": "^g_)#B(4!js7/]9PN;j9",
-                            "inputs": {
-                                "NAME": {
-                                    "shadow": {
-                                        "type": "math_number",
-                                        "id": "FDuw1#2g%GPjY4uoIN=/",
-                                        "fields": {
-                                            "NUM": 1
+                type: "iteration",
+                id: "!TY[uZF;3}fNpLxb=u^/",
+                x: 13,
+                y: 363,
+                inputs: {
+                    NAME: {
+                        block: {
+                            type: "move",
+                            id: "^g_)#B(4!js7/]9PN;j9",
+                            inputs: {
+                                NAME: {
+                                    shadow: {
+                                        type: "math_number",
+                                        id: "FDuw1#2g%GPjY4uoIN=/",
+                                        fields: {
+                                            NUM: 1
                                         }
                                     }
                                 }
@@ -761,27 +750,27 @@ export const defaultBlockly = {
             }
         ]
     }
-}
+};
 
 export const injectOptions = {
     renderer: "zelos",
     theme: "zelos",
     move: {
         scrollbars: true,
-        drag: true,
+        drag: true
     },
 
     grid: {
         spacing: 25,
         length: 3,
         colour: "#ccc",
-        snap: true,
+        snap: true
     },
 
     zoom: {
         controls: true,
-        wheel: true,
+        wheel: true
     },
 
-    toolbox: toolbox,
-}
+    toolbox: toolbox
+};

@@ -1,22 +1,22 @@
 {
-  "targets": {
-    "debug": {
-      "outFile": "src/ant/assembly/wasm/debug.wasm",
-      "textFile": "src/ant/assembly/wasm/debug.wat",
-      "sourceMap": true,
-      "debug": true
+    "targets": {
+        "debug": {
+            "outFile": "src/ant/assembly/wasm/debug.wasm",
+            "textFile": "src/ant/assembly/wasm/debug.wat",
+            "sourceMap": true,
+            "debug": true
+        },
+        "release": {
+            "outFile": "src/ant/assembly/wasm/release.wasm",
+            "textFile": "src/ant/assembly/wasm/release.wat",
+            "sourceMap": true,
+            "optimizeLevel": 3,
+            "shrinkLevel": 0,
+            "converge": true,
+            "noAssert": true
+        }
     },
-    "release": {
-      "outFile": "src/ant/assembly/wasm/release.wasm",
-      "textFile": "src/ant/assembly/wasm/release.wat",
-      "sourceMap": true,
-      "optimizeLevel": 3,
-      "shrinkLevel": 0,
-      "converge": true,
-      "noAssert": true
+    "options": {
+        "bindings": "esm"
     }
-  },
-  "options": {
-    "bindings": "esm"
-  }
 }

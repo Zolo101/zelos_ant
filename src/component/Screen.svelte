@@ -8,7 +8,7 @@
     export let scale: number = 1;
 </script>
 
-<img id="screen-{id}" src={src} width={width * scale} height={height * scale}/>
+<img id="screen-{id}" {src} width={width * scale} height={height * scale} />
 
 <style>
     img {
