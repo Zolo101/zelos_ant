@@ -1,8 +1,9 @@
 import * as twgl from "twgl.js";
 import "webgl-lint";
-import Game from "../game";
+import Game from "../game.svelte";
 import vertexShader from "./vertex.glsl?raw";
 import fragmentShader from "./fragment.glsl?raw";
+import { colours } from "../stores.svelte";
 
 export default class Renderer {
     gl: WebGL2RenderingContext;
@@ -42,8 +43,8 @@ export default class Renderer {
     }
 
     updateColours() {
-        let texture = new Uint8ClampedArray(3 * 1024);
-        texture.set(Game.colours.flat(), 0);
+        const texture = new Uint8ClampedArray(3 * 1024);
+        texture.set(Array.from(colours).flat(), 0);
         twgl.setTextureFromArray(this.gl, this.colours, texture, {
             format: this.gl.RGB,
             width: 1024,

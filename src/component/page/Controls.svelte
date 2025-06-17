@@ -1,5 +1,5 @@
 <script lang="ts">
-    import Game from "../../ant/game";
+    import Game from "../../ant/game.svelte";
     import Button from "../Button.svelte";
 
     let sliderValue = $state(0);

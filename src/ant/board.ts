@@ -1,5 +1,6 @@
 import Ant from "./ant";
-import Game from "./game";
+import Game from "./game.svelte";
+import { tiles } from "./stores.svelte";
 
 // import { cellsToImage } from "./assembly/wasm/release";
 
@@ -35,7 +36,7 @@ class Board {
     incrementCell(x: number, y: number) {
         const id = this.getCell(x, y);
         // id = (id + 1) & (Game.tiles.length - 1)
-        this.setCell(x, y, id < Game.tiles.length - 1 ? id + 1 : 0);
+        this.setCell(x, y, id < tiles.size - 1 ? id + 1 : 0);
         // console.log(id, game.tiles.size, id < game.tiles.size - 1)
 
         return;

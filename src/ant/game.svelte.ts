@@ -6,12 +6,12 @@ import Ant from "./ant";
 import * as Blockly from "blockly";
 import Save from "./save";
 import { addSave } from "./db";
+import { clear, colours, importTiles, tiles } from "./stores.svelte";
+
+// export let iterations = $state(0);
 
 class Game {
     static board = new Board(800, 800);
-    static tiles: Tile[] = [];
-    // TODO: Necessary?
-    static colours: Tile["colour"][] = [];
     static tileTriggers = new Map<number, (ant: Ant) => void>();
     static onEachIteration: (ant: Ant) => void = () => {};
 
@@ -32,7 +32,7 @@ class Game {
 
     static clear() {
         Game.board.clear();
-        Game.tiles = [];
+        clear();
     }
 
     static takePicture() {
@@ -48,15 +48,16 @@ class Game {
         const save = new Save(
             name,
             Blockly.serialization.workspaces.save(workspace),
-            Game.tiles,
+            Array.from(tiles),
             Game.takePicture()
         );
         addSave(save).then(() => Game.alertText.set("Rules saved!"));
     }
 
     static loadSnapshot(save: Save) {
-        Game.tiles = save.tile;
-        Game.colours = save.tile.map((t) => t.colour);
+        importTiles(save.tile);
+        // tiles = save.tile;
+        // colours = save.tile.map((t) => t.colour);
         Blockly.serialization.workspaces.load(save.blockly, workspace);
         renderer.updateColours();
         this.restart();
@@ -112,8 +113,8 @@ class Game {
 
     static addTile(color: Tile["colour"], triggers: Tile["triggers"]) {
         const newTile = new Tile(color, triggers);
-        Game.tiles.push(newTile);
-        Game.colours.push(newTile.colour);
+        tiles.add(newTile);
+        colours.add(newTile.colour);
         renderer.updateColours();
 
         return newTile;

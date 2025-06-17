@@ -1,6 +1,6 @@
 import Dexie, { type Table } from "dexie";
 import Save from "./save";
-import Game from "./game";
+import Game from "./game.svelte";
 
 class ZADexie extends Dexie {
     saves!: Table<Save>;

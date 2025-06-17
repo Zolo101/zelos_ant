@@ -1,4 +1,4 @@
-import Game from "./game";
+import Game from "./game.svelte";
 import * as Blockly from "blockly";
 import { javascriptGenerator } from "blockly/javascript";
 import { addBlockToBlockly } from "./blocklypain";
@@ -14,6 +14,7 @@ import {
 } from "./blockly";
 import type { WorkspaceSvg } from "core/workspace_svg";
 import Renderer from "./render/webgl2";
+import { tiles } from "./stores.svelte";
 
 export let canvas: HTMLCanvasElement;
 export let ctx: CanvasRenderingContext2D;
@@ -211,7 +212,7 @@ export function main(
 
     window.addEventListener("newTile", () => {
         const block = workspace.newBlock("on");
-        block.setFieldValue(Game.tiles.length - 1, "TileID");
+        block.setFieldValue(tiles.size - 1, "TileID");
         block.initSvg();
         block.render();
 

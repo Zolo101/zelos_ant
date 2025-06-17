@@ -1,5 +1,5 @@
 <script lang="ts">
-    import Game from "../ant/game";
+    import Game from "../ant/game.svelte";
 
     export let object;
     export let onChange: (val: unknown) => void;

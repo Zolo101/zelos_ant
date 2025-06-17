@@ -1,5 +1,5 @@
 <script lang="ts">
-    import Game from "../ant/game";
+    import Game from "../ant/game.svelte";
     import { sum } from "ramda";
 
     export let avgms = 0;
@@ -15,17 +15,17 @@
 </script>
 
 <div class="stats">
-    {#key avgms}
-        <!--        <p>each tick takes {avgms}ms, each iteration takes {avgiterationms}µs</p>-->
-        <p>
-            Each tick takes {avgms.toLocaleString(undefined, {
-                minimumFractionDigits: 3,
-                maximumFractionDigits: 3
-            })}ms
-        </p>
-        <p>{ant} {antPural} moving around</p>
-        <p>Iterations: {Game.iterations.toLocaleString()}</p>
-    {/key}
+    <!-- {#key avgms} -->
+    <!--        <p>each tick takes {avgms}ms, each iteration takes {avgiterationms}µs</p>-->
+    <p>
+        Each tick takes {avgms.toLocaleString(undefined, {
+            minimumFractionDigits: 3,
+            maximumFractionDigits: 3
+        })}ms
+    </p>
+    <p>{ant} {antPural} moving around</p>
+    <p>Iterations: {Game.iterations.toLocaleString()}</p>
+    <!-- {/key} -->
 </div>
 
 <style>

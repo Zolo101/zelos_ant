@@ -1,5 +1,5 @@
 <script lang="ts">
-    import Game from "../../ant/game";
+    import Game from "../../ant/game.svelte";
     import { liveQuery } from "dexie";
     import { db } from "../../ant/db";
     import Screen from "../Screen.svelte";
