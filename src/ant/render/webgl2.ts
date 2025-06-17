@@ -1,5 +1,5 @@
 import * as twgl from "twgl.js";
-import "https://greggman.github.io/webgl-lint/webgl-lint.js";
+import "webgl-lint";
 import Game from "../game";
 import vertexShader from "./vertex.glsl?raw";
 import fragmentShader from "./fragment.glsl?raw";
