@@ -4,18 +4,25 @@
     import Credits from "./page/Credits.svelte";
     import Saves from "./page/Saves.svelte";
 
-    let page = 0;
+    let page = 1;
 </script>
 
-<div class="header">
-    <p class="button" on:click={() => (page = 0)}>Editor</p>
-    <p class="button" on:click={() => (page = 1)}>Tiles</p>
-    <p class="button" on:click={() => (page = 2)}>Saves</p>
-    <p class="button" on:click={() => (page = 3)}>Settings</p>
-    <p class="button" on:click={() => (page = 4)}>About</p>
+{#snippet button(text: string, pg: number)}
+    <button
+        class="cursor-pointer rounded px-3 py-1 outline-2 outline-white"
+        on:click={() => (page = pg)}>{text}</button
+    >
+{/snippet}
+
+<div class="flex flex-row gap-2">
+    {@render button("Editor", 0)}
+    {@render button("Controls", 3)}
+    {@render button("Tiles", 1)}
+    {@render button("Saves", 2)}
+    {@render button("About", 4)}
     <!--    <p class="button" on:click={() => page = 5}>Debug</p>-->
 </div>
-<div>
+<div class="mt-2">
     <div
         class:hidden={page !== 0}
         class="blockly"
@@ -30,16 +37,7 @@
 </div>
 
 <style>
-    .header {
-        display: flex;
-        flex-direction: row;
-    }
-
     .hidden {
         display: none;
-    }
-
-    .blockly {
-        outline: 1px solid black;
     }
 </style>

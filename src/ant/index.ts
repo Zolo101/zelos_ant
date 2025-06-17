@@ -35,8 +35,8 @@ export function main(
     renderer = new Renderer(gl2);
     Game.clear();
 
-    Game.addTile([255, 255, 255], ["turn right"]);
-    Game.addTile([0, 0, 0], ["turn left"]);
+    Game.addTile([0, 0, 0], ["turn right"]);
+    Game.addTile([255, 255, 255], ["turn left"]);
 
     Game.board.addAnt(Game.board.width / 2, Game.board.height / 2);
 

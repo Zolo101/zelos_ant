@@ -3,6 +3,7 @@
     import Tile from "../Tile.svelte";
     import { newTileEvent, updateTileEvent } from "../../ant";
     import { onMount } from "svelte";
+    import Button from "../Button.svelte";
 
     const randomColour = () => [
         ~~(Math.random() * 255),
@@ -35,19 +36,17 @@
     onMount(() => window.dispatchEvent(updateTileEvent));
 </script>
 
-<div class="tiles">
-    {#key x}
-        {#each Game.tiles as tile, index}
-            <div class="tile-container">
-                <div class="remove" on:click={() => removeTile(index)}>X</div>
-                <Tile {tile} {index} />
-            </div>
-            <!--            <Line/>-->
-        {/each}
-    {/key}
+<div class="flex h-40 max-h-40 max-w-80 flex-row flex-wrap overflow-auto bg-gray-200">
+    {#each Game.tiles as tile, index}
+        <div class="flex flex-row items-center gap-2">
+            <Button onclick={() => removeTile(index)}>X</Button>
+            <Tile {tile} {index} />
+        </div>
+    {/each}
 </div>
-<div class="add" on:click={() => addTile()}>+</div>
+<Button onclick={addTile}>+</Button>
 
+<!-- 
 <style>
     .tiles {
         display: flex;
@@ -95,4 +94,4 @@
         outline: 1px solid red;
         cursor: pointer;
     }
-</style>
+</style> -->

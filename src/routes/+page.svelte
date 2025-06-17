@@ -16,9 +16,9 @@
     });
 </script>
 
-<div class="main">
+<main class="flex flex-col p-2.5">
     <div class="top">
-        <div class="viewer-editor">
+        <div class="viewer-editor outline outline-white/50">
             <canvas id="canvas" width="800" height="800"></canvas>
         </div>
         <div class="right">
@@ -26,17 +26,11 @@
             <Tab />
         </div>
     </div>
-</div>
+</main>
 
 <Alert />
 
 <style>
-    .main {
-        display: flex;
-        flex-direction: column;
-        padding: 10px;
-    }
-
     .right {
         display: flex;
 
