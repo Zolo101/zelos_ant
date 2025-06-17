@@ -6,10 +6,13 @@
     import Stats from "../component/Stats.svelte";
 
     onMount(() => {
+        // const dpr = window.devicePixelRatio || 1;
+
         const canvas = document.getElementById("canvas") as HTMLCanvasElement;
-        const ctx = canvas.getContext("canvas") as CanvasRenderingContext2D;
+        // const ctx = canvas.getContext("canvas") as CanvasRenderingContext2D;
         const gl2 = canvas.getContext("webgl2") as WebGL2RenderingContext;
-        main(canvas, ctx, gl2);
+        // main(canvas, ctx, gl2);
+        main(canvas, gl2);
     });
 </script>
 
@@ -24,6 +27,7 @@
         </div>
     </div>
 </div>
+
 <Alert />
 
 <style>
@@ -65,5 +69,9 @@
     .viewer-editor {
         display: flex;
         flex-direction: row;
+    }
+
+    canvas {
+        /* image-rendering: pixelated; */
     }
 </style>

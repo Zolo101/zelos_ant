@@ -1,5 +1,6 @@
 import Game from "./game";
-import Blockly from "blockly";
+import * as Blockly from "blockly";
+import { javascriptGenerator } from "blockly/javascript";
 import { addBlockToBlockly } from "./blocklypain";
 import {
     createAntJSON,
@@ -25,11 +26,11 @@ export let renderer: Renderer;
 
 export function main(
     canvasElement: HTMLCanvasElement,
-    ctx_2D: CanvasRenderingContext2D,
+    // ctx_2D: CanvasRenderingContext2D,
     gl2_2D: WebGL2RenderingContext
 ) {
     canvas = canvasElement;
-    ctx = ctx_2D;
+    // ctx = ctx_2D;
     gl2 = gl2_2D;
     renderer = new Renderer(gl2);
     Game.clear();
@@ -45,10 +46,10 @@ export function main(
     addBlockToBlockly({
         name: "turn",
         json: turnJSON,
-        tooltip: () => {
-            return `Turns the ant in the ${this.getFieldValue("Directions")} direction.`;
+        tooltip: (block) => {
+            return `Turns the ant in the ${block.getFieldValue("Directions")} direction.`;
         },
-        onRun: (block: Blockly.Block) => {
+        onRun: (block) => {
             let dropdown_directions = block.getFieldValue("Directions");
             return `ant.turn${dropdown_directions}();\n`;
         }
@@ -57,10 +58,10 @@ export function main(
     addBlockToBlockly({
         name: "look",
         json: lookJSON,
-        tooltip: () => {
-            return `Makes the ant look ${this.getFieldValue("Directions")}.`;
+        tooltip: (block) => {
+            return `Makes the ant look ${block.getFieldValue("Directions")}.`;
         },
-        onRun: (block: Blockly.Block) => {
+        onRun: (block) => {
             let dropdown_directions = block.getFieldValue("Directions");
             switch (dropdown_directions) {
                 case "North":
@@ -80,12 +81,12 @@ export function main(
     addBlockToBlockly({
         name: "on",
         json: onJSON,
-        tooltip: () => {
-            return `Triggers when an ant steps on tile ${this.getFieldValue("TileID")}.`;
+        tooltip: (block) => {
+            return `Triggers when an ant steps on tile ${block.getFieldValue("TileID")}.`;
         },
-        onRun: (block: Blockly.Block) => {
+        onRun: (block) => {
             let number_tileid = block.getFieldValue("TileID");
-            let statements_name = Blockly.JavaScript.statementToCode(block, "NAME");
+            let statements_name = javascriptGenerator.statementToCode(block, "NAME");
             return `// On tile ${number_tileid}\nGame.tileTriggers.set(${number_tileid}, (ant) => {\n${statements_name}});\n`;
         }
     });
@@ -93,14 +94,14 @@ export function main(
     addBlockToBlockly({
         name: "move",
         json: moveJSON,
-        tooltip: () => {
-            return `Moves the ant forward by ${this.getFieldValue("NAME")}.`;
+        tooltip: (block) => {
+            return `Moves the ant forward by ${block.getFieldValue("NAME")}.`;
         },
         onRun: (block: Blockly.Block) => {
-            let amount = Blockly.JavaScript.valueToCode(
+            let amount = javascriptGenerator.valueToCode(
                 block,
                 "NAME",
-                Blockly.JavaScript.ORDER_ADDITION
+                javascriptGenerator.ORDER_ADDITION
             );
             return `ant.moveForward(${amount});\n`;
         }
@@ -109,12 +110,12 @@ export function main(
     addBlockToBlockly({
         name: "iteration",
         json: iterationJSON,
-        tooltip: () => {
+        tooltip: (block) => {
             return `Triggers on each iteration.`;
         },
-        onRun: (block: Blockly.Block) => {
+        onRun: (block) => {
             // let number_tileid = block.getFieldValue("TileID");
-            let statements_name = Blockly.JavaScript.statementToCode(block, "NAME");
+            let statements_name = javascriptGenerator.statementToCode(block, "NAME");
             return `// On iteration\nGame.onEachIteration = (ant) => {\n${statements_name}}\n`;
         }
     });
@@ -128,7 +129,7 @@ export function main(
         },
         onRun: (block: Blockly.Block) => {
             let number_tileid = block.getFieldValue('TileID');
-            let statements_name = Blockly.JavaScript.statementToCode(block, 'NAME');
+            let statements_name = javascriptGenerator.statementToCode(block, 'NAME');
             return `// On iteration\nGame.onEachIteration = (ant) => {\n${statements_name}}\n`;
         }
     });*/
@@ -143,22 +144,22 @@ export function main(
         }
     };
 
-    Blockly.JavaScript["iteration"] = (block: Blockly.Block) => {
+    javascriptGenerator["iteration"] = (block: Blockly.Block) => {
         let number_tileid = block.getFieldValue('TileID');
-        let statements_name = Blockly.JavaScript.statementToCode(block, 'NAME');
+        let statements_name = javascriptGenerator.statementToCode(block, 'NAME');
         return `// On iteration\nGame.onEachIteration = (ant) => {\n${statements_name}}\n`;
     };*/
 
     addBlockToBlockly({
         name: "create_ant",
         json: createAntJSON,
-        tooltip: () => {
-            return `Creates an ant in the location (${this.getFieldValue("X")}, ${this.getFieldValue("Y")})`;
+        tooltip: (block) => {
+            return `Creates an ant in the location (${block.getFieldValue("X")}, ${block.getFieldValue("Y")})`;
         },
-        onRun: (block: Blockly.Block) => {
+        onRun: (block) => {
             let [x, y] = [
-                Blockly.JavaScript.valueToCode(block, "X", Blockly.JavaScript.ORDER_ADDITION),
-                Blockly.JavaScript.valueToCode(block, "Y", Blockly.JavaScript.ORDER_ADDITION)
+                javascriptGenerator.valueToCode(block, "X", javascriptGenerator.ORDER_ADDITION),
+                javascriptGenerator.valueToCode(block, "Y", javascriptGenerator.ORDER_ADDITION)
             ];
             return `Game.board.addAnt(${x}, ${y});\n`;
         }
@@ -192,7 +193,7 @@ export function main(
                 if (e.oldParentId === e.newParentId) return;
                 if (e.oldInputName === e.newInputName) return;
             }
-            const code = Blockly.JavaScript.workspaceToCode(workspace);
+            const code = javascriptGenerator.workspaceToCode(workspace);
             // document.getElementById("code")!.innerText = code;
 
             Game.tileTriggers.clear();

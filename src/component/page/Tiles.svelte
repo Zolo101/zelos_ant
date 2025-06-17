@@ -30,7 +30,7 @@
     };
 
     // TODO: Temporary
-    window.addEventListener("updateTile", () => (x = (x + 1) & 3));
+    // window.addEventListener("updateTile", () => (x = (x + 1) & 3));
 
     onMount(() => window.dispatchEvent(updateTileEvent));
 </script>

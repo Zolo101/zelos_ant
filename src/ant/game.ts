@@ -3,7 +3,7 @@ import Tile from "./tile";
 import { writable } from "svelte/store";
 import { canvas, iterate, renderer, updateTileEvent, workspace } from "./index";
 import Ant from "./ant";
-import Blockly from "blockly";
+import * as Blockly from "blockly";
 import Save from "./save";
 import { addSave } from "./db";
 
