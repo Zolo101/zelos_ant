@@ -1,5 +1,5 @@
 <script lang="ts">
-    import Game from "../../ant/game.svelte";
+    import Game from "../../ant/Game.svelte";
     import { liveQuery } from "dexie";
     import { db } from "../../ant/db";
     import Screen from "../Screen.svelte";
@@ -28,16 +28,13 @@
     };
 </script>
 
-<div class="button save-btn" on:click={() => Game.saveSnapshot()}>Save</div>
+<button class="button save-btn" onclick={Game.saveSnapshot}>Save</button>
 <Line />
 <br />
-<!--    <div class="button control" on:click={() => Game.loadFromLocalStorage()}>Load</div>-->
-<!--        <div class="button control" on:click={() => Game.paused = !Game.paused}>Export</div>-->
-<!--        <div class="button control" on:click={() => Game.paused = !Game.paused}>Import</div>-->
 <div class="saves">
     {#if $saves}
         {#each $saves as save (save.id)}
-            <div class="save" on:click={() => loadSave(save)}>
+            <button class="save" onclick={() => loadSave(save)}>
                 <Screen
                     id={save.id}
                     src={save.src}
@@ -57,7 +54,7 @@
                 <div class="save-delete">
                     <!--                <button onclick="Game.deleteSave('{save.id}')">Delete</button>-->
                 </div>
-            </div>
+            </button>
         {/each}
     {/if}
 </div>

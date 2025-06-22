@@ -4,68 +4,31 @@
     import Tab from "../component/Tab.svelte";
     import Alert from "../component/Alert.svelte";
     import Stats from "../component/Stats.svelte";
+    import Controls from "../component/page/Controls.svelte";
 
+    let canvas: HTMLCanvasElement;
     onMount(() => {
         // const dpr = window.devicePixelRatio || 1;
-
-        const canvas = document.getElementById("canvas") as HTMLCanvasElement;
-        // const ctx = canvas.getContext("canvas") as CanvasRenderingContext2D;
         const gl2 = canvas.getContext("webgl2") as WebGL2RenderingContext;
-        // main(canvas, ctx, gl2);
         main(canvas, gl2);
     });
 </script>
 
-<main class="flex flex-col p-2.5">
-    <div class="top">
-        <div class="viewer-editor outline outline-white/50">
-            <canvas id="canvas" width="800" height="800"></canvas>
-        </div>
-        <div class="right">
-            <Stats />
-            <Tab />
-        </div>
+<main class="flex gap-3 p-3">
+    <div class="flex w-1/2 flex-col">
+        <canvas
+            bind:this={canvas}
+            class="outline outline-white/10"
+            id="canvas"
+            width="800"
+            height="800"
+        ></canvas>
+        <Stats />
+        <Controls />
+    </div>
+    <div class="w-1/2">
+        <Tab />
     </div>
 </main>
 
 <Alert />
-
-<style>
-    .right {
-        display: flex;
-
-        flex-direction: column;
-        overflow-y: auto;
-        flex-grow: 1;
-        margin: 0 10px;
-        padding: 1px;
-    }
-
-    pre {
-        outline: 1px solid black;
-        background-color: lightgrey;
-        max-width: 300px;
-        max-height: 300px;
-        overflow: auto;
-        padding: 10px;
-    }
-
-    .top {
-        display: flex;
-        flex-direction: row;
-        flex-wrap: wrap;
-    }
-
-    .end {
-        flex-grow: 1;
-    }
-
-    .viewer-editor {
-        display: flex;
-        flex-direction: row;
-    }
-
-    canvas {
-        /* image-rendering: pixelated; */
-    }
-</style>

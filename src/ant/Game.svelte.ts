@@ -1,7 +1,6 @@
 import Board from "./board";
 import Tile from "./tile";
-import { writable } from "svelte/store";
-import { canvas, iterate, renderer, updateTileEvent, workspace } from "./index";
+import { canvas, iterate, renderer, workspace } from "./index";
 import Ant from "./ant";
 import * as Blockly from "blockly";
 import Save from "./save";
@@ -10,23 +9,33 @@ import { clear, colours, importTiles, tiles } from "./stores.svelte";
 
 // export let iterations = $state(0);
 
-class Game {
+// Singleton
+export default class Game {
     static board = new Board(800, 800);
     static tileTriggers = new Map<number, (ant: Ant) => void>();
     static onEachIteration: (ant: Ant) => void = () => {};
 
-    static alertText = writable("");
+    alertText = $state("");
     static oldTiles: [number, number][] = [];
-    static updateInProgress: boolean = false;
-    static fpsHistory: number[] = [];
+    updateInProgress = $state(false);
+    // static fpsHistory: number[] = [];
+    fps = $state(0);
 
-    static paused: boolean = false;
-    static iterationsPerTick: number = 100;
-    static iterations = 0;
+    paused = $state(false);
+    iterationsPerTick = $state(100);
+    iterations = $state(0);
+
+    private static _instance: Game;
+    static get instance() {
+        if (!Game._instance) {
+            Game._instance = new Game();
+        }
+        return Game._instance;
+    }
 
     static restart() {
         Game.board.clear();
-        Game.iterations = 0;
+        this.instance.iterations = 0;
         Game.board.addAnt(Game.board.width / 2, Game.board.height / 2);
     }
 
@@ -51,7 +60,7 @@ class Game {
             Array.from(tiles),
             Game.takePicture()
         );
-        addSave(save).then(() => Game.alertText.set("Rules saved!"));
+        addSave(save).then(() => (Game.instance.alertText = "Rules saved!"));
     }
 
     static loadSnapshot(save: Save) {
@@ -61,7 +70,7 @@ class Game {
         Blockly.serialization.workspaces.load(save.blockly, workspace);
         renderer.updateColours();
         this.restart();
-        window.dispatchEvent(updateTileEvent);
+        // window.dispatchEvent(updateTileEvent);
     }
 
     /*
@@ -93,23 +102,25 @@ class Game {
     */
 
     static tick() {
-        Game.updateInProgress = true;
-        let pn1 = performance.now();
+        Game.instance.updateInProgress = true;
+        const pn1 = performance.now();
+        // console.log(Game.instance.iterationsPerTick);
 
-        for (let i = 0; i < Game.iterationsPerTick; i++) iterate();
-        Game.iterations += Game.iterationsPerTick;
+        for (let i = 0; i < Game.instance.iterationsPerTick; i++) iterate();
+        Game.instance.iterations += Game.instance.iterationsPerTick;
         renderer.tiles = Game.board.cells;
 
-        Game.pushHistory(performance.now() - pn1);
+        // Game.pushHistory(performance.now() - pn1);
+        Game.instance.fps = performance.now() - pn1;
 
-        Game.updateInProgress = false;
+        Game.instance.updateInProgress = false;
     }
 
-    static pushHistory(time: number) {
-        Game.fpsHistory.push(time);
+    // static pushHistory(time: number) {
+    //     Game.fpsHistory.push(time);
 
-        if (Game.fpsHistory.length > 60) Game.fpsHistory.shift();
-    }
+    //     if (Game.fpsHistory.length > 60) Game.fpsHistory.shift();
+    // }
 
     static addTile(color: Tile["colour"], triggers: Tile["triggers"]) {
         const newTile = new Tile(color, triggers);
@@ -120,5 +131,3 @@ class Game {
         return newTile;
     }
 }
-
-export default Game;

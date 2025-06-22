@@ -1,4 +1,4 @@
-import Game from "./game.svelte";
+import Game from "./Game.svelte";
 
 // import { moveForward_wasm } from "./assembly/wasm/release";
 

@@ -1,20 +1,19 @@
 <script lang="ts">
-    import Game from "../ant/game.svelte";
+    import Game from "../ant/Game.svelte";
 
     let show = false;
-    let text = Game.alertText;
-    text.subscribe((v) => (show = !!v));
+    let text = $derived(Game.instance.alertText);
 
     const close = () => {
         show = false;
-        text.set("");
+        Game.instance.alertText = "";
     };
 </script>
 
 <div class="background" class:hidden={!show}></div>
 <div class="alert" class:hidden={!show}>
-    <p class="text">{$text}</p>
-    <p class="close button" on:click={() => close()}>OK!</p>
+    <p class="text">{text}</p>
+    <button class="close button" onclick={close}>OK!</button>
 </div>
 
 <style>

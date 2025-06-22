@@ -1,6 +1,6 @@
 import Dexie, { type Table } from "dexie";
 import Save from "./save";
-import Game from "./game.svelte";
+import Game from "./Game.svelte";
 
 class ZADexie extends Dexie {
     saves!: Table<Save>;
@@ -19,6 +19,6 @@ export async function addSave(save: Save) {
     try {
         await db.saves.add(save);
     } catch (err) {
-        Game.alertText.set(`Save failed! ${err}`);
+        Game.instance.alertText = `Save failed! ${err}`;
     }
 }

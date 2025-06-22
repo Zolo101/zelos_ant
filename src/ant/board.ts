@@ -1,5 +1,4 @@
 import Ant from "./ant";
-import Game from "./game.svelte";
 import { tiles } from "./stores.svelte";
 
 // import { cellsToImage } from "./assembly/wasm/release";

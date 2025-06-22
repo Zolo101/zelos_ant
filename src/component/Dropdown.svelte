@@ -1,5 +1,5 @@
 <script lang="ts">
-    import Game from "../ant/game.svelte";
+    import Game from "../ant/Game.svelte";
 
     export let object;
     export let onChange: (val: unknown) => void;
@@ -20,13 +20,13 @@
 </script>
 
 <div class="dropdown">
-    <div class="button hidden" on:click={() => operateDropdown()}>{currentValue}</div>
+    <button class="button hidden" onclick={operateDropdown}>{currentValue}</button>
     <div class="options" class:open={opened}>
         {#each Array.from(options) as option}
             <!--{#if option === defaultSelection}-->
             <!--               <div class="option selected">{option}</div>-->
             <!--           {:else}-->
-            <div class="option" on:click={() => selectOption(option)}>{option}</div>
+            <button class="option" onclick={() => selectOption(option)}>{option}</button>
             <!--{/if}-->
         {/each}
     </div>

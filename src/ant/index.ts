@@ -1,4 +1,4 @@
-import Game from "./game.svelte";
+import Game from "./Game.svelte";
 import * as Blockly from "blockly";
 import { javascriptGenerator } from "blockly/javascript";
 import { addBlockToBlockly } from "./blocklypain";
@@ -19,9 +19,9 @@ import { tiles } from "./stores.svelte";
 export let canvas: HTMLCanvasElement;
 export let ctx: CanvasRenderingContext2D;
 export let gl2: WebGL2RenderingContext;
-export let newTileEvent = new Event("newTile");
+// export let newTileEvent = new Event("newTile");
 // TODO: Temporary
-export let updateTileEvent = new Event("updateTile");
+// export let updateTileEvent = new Event("updateTile");
 export let workspace: WorkspaceSvg;
 export let renderer: Renderer;
 
@@ -41,7 +41,7 @@ export function main(
 
     Game.board.addAnt(Game.board.width / 2, Game.board.height / 2);
 
-    console.log(Game.tiles, Game.tileTriggers, Game.board.ants);
+    console.log(tiles, Game.tileTriggers, Game.board.ants);
 
     // TODO: tooltip does not work
     addBlockToBlockly({
@@ -51,7 +51,7 @@ export function main(
             return `Turns the ant in the ${block.getFieldValue("Directions")} direction.`;
         },
         onRun: (block) => {
-            let dropdown_directions = block.getFieldValue("Directions");
+            const dropdown_directions = block.getFieldValue("Directions");
             return `ant.turn${dropdown_directions}();\n`;
         }
     });
@@ -63,7 +63,7 @@ export function main(
             return `Makes the ant look ${block.getFieldValue("Directions")}.`;
         },
         onRun: (block) => {
-            let dropdown_directions = block.getFieldValue("Directions");
+            const dropdown_directions = block.getFieldValue("Directions");
             switch (dropdown_directions) {
                 case "North":
                     return `ant.rotation = 0;\n`;
@@ -86,8 +86,8 @@ export function main(
             return `Triggers when an ant steps on tile ${block.getFieldValue("TileID")}.`;
         },
         onRun: (block) => {
-            let number_tileid = block.getFieldValue("TileID");
-            let statements_name = javascriptGenerator.statementToCode(block, "NAME");
+            const number_tileid = block.getFieldValue("TileID");
+            const statements_name = javascriptGenerator.statementToCode(block, "NAME");
             return `// On tile ${number_tileid}\nGame.tileTriggers.set(${number_tileid}, (ant) => {\n${statements_name}});\n`;
         }
     });
@@ -99,7 +99,7 @@ export function main(
             return `Moves the ant forward by ${block.getFieldValue("NAME")}.`;
         },
         onRun: (block: Blockly.Block) => {
-            let amount = javascriptGenerator.valueToCode(
+            const amount = javascriptGenerator.valueToCode(
                 block,
                 "NAME",
                 javascriptGenerator.ORDER_ADDITION
@@ -111,12 +111,12 @@ export function main(
     addBlockToBlockly({
         name: "iteration",
         json: iterationJSON,
-        tooltip: (block) => {
+        tooltip: () => {
             return `Triggers on each iteration.`;
         },
         onRun: (block) => {
             // let number_tileid = block.getFieldValue("TileID");
-            let statements_name = javascriptGenerator.statementToCode(block, "NAME");
+            const statements_name = javascriptGenerator.statementToCode(block, "NAME");
             return `// On iteration\nGame.onEachIteration = (ant) => {\n${statements_name}}\n`;
         }
     });
@@ -158,7 +158,7 @@ export function main(
             return `Creates an ant in the location (${block.getFieldValue("X")}, ${block.getFieldValue("Y")})`;
         },
         onRun: (block) => {
-            let [x, y] = [
+            const [x, y] = [
                 javascriptGenerator.valueToCode(block, "X", javascriptGenerator.ORDER_ADDITION),
                 javascriptGenerator.valueToCode(block, "Y", javascriptGenerator.ORDER_ADDITION)
             ];
@@ -179,22 +179,34 @@ export function main(
         }
     });*/
 
-    // @ts-ignore
     workspace = Blockly.inject("blockly", injectOptions);
 
-    workspace.addChangeListener((e: any) => {
+    workspace.addChangeListener(Blockly.Events.disableOrphans);
+
+    let code = "";
+    workspace.addChangeListener((e: Blockly.Events.Abstract) => {
+        // console.log(e.type, e?.reason);
         if (
-            e.type === Blockly.Events.BLOCK_CREATE ||
-            e.type === Blockly.Events.BLOCK_DELETE ||
+            // e.type === Blockly.Events.BLOCK_CREATE ||
+            // e.type === Blockly.Events.BLOCK_DELETE ||
             e.type === Blockly.Events.FINISHED_LOADING ||
             e.type === Blockly.Events.BLOCK_CHANGE ||
             e.type === Blockly.Events.BLOCK_MOVE
         ) {
+            const newCode = javascriptGenerator.workspaceToCode(workspace);
             if (e.type === Blockly.Events.BLOCK_MOVE) {
-                if (e.oldParentId === e.newParentId) return;
-                if (e.oldInputName === e.newInputName) return;
+                if (newCode !== code) {
+                    if (e?.reason[0] === "disconnect" || e?.reason[0] === "connect") {
+                        return;
+                    }
+                } else return;
             }
-            const code = javascriptGenerator.workspaceToCode(workspace);
+            code = newCode;
+            console.log("reset!");
+            // if (e.type === Blockly.Events.BLOCK_MOVE) {
+            //     if (e.oldParentId === e.newParentId) return;
+            //     if (e.oldInputName === e.newInputName) return;
+            // }
             // document.getElementById("code")!.innerText = code;
 
             Game.tileTriggers.clear();
@@ -204,7 +216,7 @@ export function main(
                 // eval for now (its slow)
                 eval(code);
             } catch (er) {
-                console.warn("eval error", er);
+                console.error("eval error", er);
             }
         }
     });
@@ -234,7 +246,7 @@ export function main(
                 break;
 
             case "KeyP":
-                Game.paused = !Game.paused;
+                Game.instance.paused = !Game.instance.paused;
                 break;
         }
     });
@@ -242,7 +254,7 @@ export function main(
 }
 
 export function frame() {
-    if (!Game.updateInProgress && !Game.paused) Game.tick();
+    if (!Game.instance.updateInProgress && !Game.instance.paused) Game.tick();
     renderer.render();
 
     window.requestAnimationFrame(frame);
