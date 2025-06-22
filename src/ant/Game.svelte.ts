@@ -1,17 +1,17 @@
 import Board from "./board";
 import Tile from "./tile";
-import { canvas, iterate, renderer, workspace } from "./index";
 import Ant from "./ant";
 import * as Blockly from "blockly";
 import Save from "./save";
 import { addSave } from "./db";
-import { clear, colours, importTiles, tiles } from "./stores.svelte";
+import { clear, colours, height, importTiles, tiles, width } from "./stores.svelte";
+import type Renderer from "./render/webgl2";
 
 // export let iterations = $state(0);
 
 // Singleton
 export default class Game {
-    static board = new Board(800, 800);
+    static board = new Board(width, height);
     static tileTriggers = new Map<number, (ant: Ant) => void>();
     static onEachIteration: (ant: Ant) => void = () => {};
 
@@ -44,12 +44,16 @@ export default class Game {
         clear();
     }
 
-    static takePicture() {
+    static takePicture(renderer: Renderer, canvas: HTMLCanvasElement) {
         renderer.render();
         return canvas.toDataURL();
     }
 
-    static saveSnapshot() {
+    static saveSnapshot(
+        renderer: Renderer,
+        workspace: Blockly.WorkspaceSvg,
+        canvas: HTMLCanvasElement
+    ) {
         // save the current state of everything
         let name = prompt("Name your save")?.trim();
         if (!name) name = "Untitled Save";
@@ -58,12 +62,12 @@ export default class Game {
             name,
             Blockly.serialization.workspaces.save(workspace),
             Array.from(tiles),
-            Game.takePicture()
+            Game.takePicture(renderer, canvas)
         );
         addSave(save).then(() => (Game.instance.alertText = "Rules saved!"));
     }
 
-    static loadSnapshot(save: Save) {
+    static loadSnapshot(save: Save, renderer: Renderer, workspace: Blockly.WorkspaceSvg) {
         importTiles(save.tile);
         // tiles = save.tile;
         // colours = save.tile.map((t) => t.colour);
@@ -101,7 +105,7 @@ export default class Game {
     }
     */
 
-    static tick() {
+    static tick(renderer: Renderer, iterate: () => void) {
         Game.instance.updateInProgress = true;
         const pn1 = performance.now();
         // console.log(Game.instance.iterationsPerTick);
@@ -122,7 +126,7 @@ export default class Game {
     //     if (Game.fpsHistory.length > 60) Game.fpsHistory.shift();
     // }
 
-    static addTile(color: Tile["colour"], triggers: Tile["triggers"]) {
+    static addTile(renderer: Renderer, color: Tile["colour"], triggers: Tile["triggers"]) {
         const newTile = new Tile(color, triggers);
         tiles.add(newTile);
         colours.add(newTile.colour);

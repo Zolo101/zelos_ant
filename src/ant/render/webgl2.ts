@@ -1,9 +1,8 @@
 import * as twgl from "twgl.js";
 import "webgl-lint";
-import Game from "../game.svelte";
 import vertexShader from "./vertex.glsl?raw";
 import fragmentShader from "./fragment.glsl?raw";
-import { colours } from "../stores.svelte";
+import { colours, height, width } from "../stores.svelte";
 
 export default class Renderer {
     gl: WebGL2RenderingContext;
@@ -19,7 +18,7 @@ export default class Renderer {
         const program = twgl.createProgram(gl, [vertexShader, fragmentShader]);
         this.programInfo = twgl.createProgramInfoFromProgram(gl, program);
         this.objects = [];
-        this.tiles = new Uint8ClampedArray(800 * 800);
+        this.tiles = new Uint8ClampedArray(width * height);
         this.bufferInfo = twgl.primitives.createXYQuadBufferInfo(gl);
 
         this.tileTexture = twgl.createTexture(gl, {
@@ -66,12 +65,12 @@ export default class Renderer {
         };
 
         // these convert from pixels to clip space
-        twgl.m4.ortho(0, 800, 800, 0, -1, 1, matrix);
+        twgl.m4.ortho(0, width, height, 0, -1, 1, matrix);
 
         // these move and scale the unit quad into the size we want
         // in the target as pixels
         twgl.m4.translate(matrix, [0, 0, 0], matrix);
-        twgl.m4.scale(matrix, [800, 800, 1], matrix);
+        twgl.m4.scale(matrix, [width, height, 1], matrix);
 
         this.gl.useProgram(this.programInfo.program);
         twgl.setBuffersAndAttributes(this.gl, this.programInfo, this.bufferInfo);

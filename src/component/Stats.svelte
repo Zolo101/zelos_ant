@@ -3,7 +3,7 @@
     let antPural = $derived(Game.board.ants.length > 1 ? "ants" : "ant");
 </script>
 
-<div class="flex w-full justify-between p-5">
+<div class="flex w-full justify-between px-5">
     <p>
         Each tick takes {Game.instance.fps.toLocaleString(undefined, {
             minimumFractionDigits: 1,

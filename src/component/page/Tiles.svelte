@@ -1,24 +1,10 @@
 <script lang="ts">
     import Game from "../../ant/Game.svelte";
     import TilesTile from "../TilesTile.svelte";
-    import { onMount } from "svelte";
-    import Button from "../Button.svelte";
     import { colours, tiles } from "../../ant/stores.svelte";
     import type Tile from "../../ant/tile";
 
-    const randomColour = () => [
-        ~~(Math.random() * 255),
-        ~~(Math.random() * 255),
-        ~~(Math.random() * 255)
-    ];
-
-    let x;
-    const addTile = () => {
-        Game.addTile(randomColour(), ["turn left"]);
-        // window.dispatchEvent(updateTileEvent);
-        // window.dispatchEvent(newTileEvent);
-        Game.restart();
-    };
+    const { addTile }: { addTile: () => void } = $props();
 
     const removeTile = (tile: Tile) => {
         // Must be at least one tile
@@ -26,22 +12,18 @@
 
         tiles.delete(tile);
         colours.delete(tile.colour);
-        // tiles1 = Array.from(Game.tiles.values());
-        // window.dispatchEvent(updateTileEvent);
         Game.restart();
     };
-
-    // TODO: Temporary
-    // window.addEventListener("updateTile", () => (x = (x + 1) & 3));
-
-    // onMount(() => window.dispatchEvent(updateTileEvent));
 </script>
 
-<div
-    class="flex h-160 max-w-160 flex-row flex-wrap content-start gap-2 overflow-auto bg-gray-200 p-2"
->
+<div class="flex flex-row flex-wrap content-start gap-2 overflow-auto rounded bg-purple-950 p-2">
     {#each tiles as tile, index}
         <TilesTile {tile} {index} onclick={() => removeTile(tile)} />
     {/each}
+    <button
+        onclick={addTile}
+        class="flex h-10 w-10 cursor-pointer bg-black font-bold text-purple-200 outline-1 outline-purple-500"
+    >
+        <span class="m-auto text-xl">+</span>
+    </button>
 </div>
-<Button onclick={addTile}>+</Button>

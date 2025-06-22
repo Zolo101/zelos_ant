@@ -6,3 +6,33 @@ body {
     background-color: black;
     color: white;
 }
+
+/* Blockly */
+.blocklyToolboxCategoryLabel {
+    /* color: black; */
+    /* font-weight: bold; */
+}
+
+.blocklyFlyout, .blocklyToolboxFlyout {
+    backdrop-filter: blur(2px);
+}
+
+/* TODO: Remove this when we figure out why its not disappearing */
+.blocklyScrollbarVertical {
+    display: none;
+}
+
+.blocklyToolbox {
+    backdrop-filter: blur(2px);
+    background-color: rgba(0, 0, 0, 0.5);
+    font-weight: bold;
+    @apply text-purple-100;
+}
+
+.blocklyMutatorBackground {
+    fill: rgba(255, 255, 255, 0.5);
+    outline: none;
+}
+
+/* .blocklyWorkspace .blocklyBlock path {
+} */

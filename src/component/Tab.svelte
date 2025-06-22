@@ -16,7 +16,7 @@
 
 <div class="flex flex-row gap-2 *:grow">
     {@render button("Editor", 0)}
-    {@render button("Tiles", 1)}
+    <!-- {@render button("Tiles", 1)} -->
     {@render button("Saves", 2)}
     {@render button("About", 3)}
     <!--    <p class="button" on:click={() => page = 5}>Debug</p>-->
@@ -27,9 +27,9 @@
             <div class="absolute top-0 left-0 h-full w-full" id="blockly"></div>
         </div>
     {/if}
-    {#if page === 1}
+    <!-- {#if page === 1}
         <Tiles />
-    {/if}
+    {/if} -->
     {#if page === 2}
         <Saves />
     {/if}

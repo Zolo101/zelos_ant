@@ -1,6 +1,9 @@
 import { SvelteSet } from "svelte/reactivity";
 import type Tile from "./tile";
 
+export const width = $state(800);
+export const height = $state(800);
+
 export const tiles: Set<Tile> = new SvelteSet();
 export const colours: Set<Tile["colour"]> = new SvelteSet();
 

@@ -1,6 +1,9 @@
 <script lang="ts">
     import Game from "../../ant/Game.svelte";
+    import type Renderer from "../../ant/render/webgl2";
     import Button from "../Button.svelte";
+
+    const { renderer, iterate }: { renderer: Renderer; iterate: () => void } = $props();
 
     let sliderValue = $state(Math.log10(Game.instance.iterationsPerTick));
     let controlText = $derived(Game.instance.paused ? "Resume" : "Pause");
@@ -41,7 +44,7 @@
         <Button onclick={() => (Game.instance.paused = !Game.instance.paused)}>
             {controlText} (P)
         </Button>
-        <Button onclick={() => Game.tick()}>One Tick</Button>
+        <Button onclick={() => Game.tick(renderer, iterate)}>One Tick</Button>
     </div>
     <!-- <pre id="code" class="text-xs"></pre> -->
 </div>
