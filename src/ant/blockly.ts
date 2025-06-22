@@ -1,8 +1,11 @@
+import * as Blockly from "blockly";
+
 export const [
     turnJSON,
     lookJSON,
     onJSON,
     moveJSON,
+    incrementJSON,
     iterationJSON,
     iterationOnEveryJSON,
     createAntJSON,
@@ -84,7 +87,23 @@ export const [
     },
     {
         type: "move",
-        message0: "Move forward again by %1",
+        message0: "Move forward by %1",
+        args0: [
+            {
+                type: "input_value",
+                name: "NAME",
+                check: "Number"
+            }
+        ],
+        previousStatement: null,
+        nextStatement: null,
+        colour: 230,
+        tooltip: "",
+        helpUrl: ""
+    },
+    {
+        type: "increment",
+        message0: "Increment cell by %1",
         args0: [
             {
                 type: "input_value",
@@ -210,6 +229,20 @@ export const toolbox = {
                 },
                 {
                     kind: "block",
+                    type: "increment",
+                    inputs: {
+                        NAME: {
+                            shadow: {
+                                type: "math_number",
+                                fields: {
+                                    NUM: 1
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    kind: "block",
                     type: "on"
                 },
                 {
@@ -249,7 +282,7 @@ export const toolbox = {
             ],
             id: "catZA",
             colour: "0",
-            name: "Zelo's Ant"
+            name: "Ant"
         },
         {
             kind: "SEP"
@@ -562,36 +595,36 @@ export const toolbox = {
             colour: "260",
             name: "Lists"
         },
-        {
-            kind: "CATEGORY",
-            contents: [
-                {
-                    kind: "BLOCK",
-                    blockxml: '<block type="colour_picker"></block>',
-                    type: "colour_picker"
-                },
-                {
-                    kind: "BLOCK",
-                    blockxml: '<block type="colour_random"></block>',
-                    type: "colour_random"
-                },
-                {
-                    kind: "BLOCK",
-                    blockxml:
-                        '<block type="colour_rgb">\n          <value name="RED">\n            <shadow type="math_number">\n              <field name="NUM">100</field>\n            </shadow>\n          </value>\n          <value name="GREEN">\n            <shadow type="math_number">\n              <field name="NUM">50</field>\n            </shadow>\n          </value>\n          <value name="BLUE">\n            <shadow type="math_number">\n              <field name="NUM">0</field>\n            </shadow>\n          </value>\n        </block>',
-                    type: "colour_rgb"
-                },
-                {
-                    kind: "BLOCK",
-                    blockxml:
-                        '<block type="colour_blend">\n          <value name="COLOUR1">\n            <shadow type="colour_picker">\n              <field name="COLOUR">#ff0000</field>\n            </shadow>\n          </value>\n          <value name="COLOUR2">\n            <shadow type="colour_picker">\n              <field name="COLOUR">#3333ff</field>\n            </shadow>\n          </value>\n          <value name="RATIO">\n            <shadow type="math_number">\n              <field name="NUM">0.5</field>\n            </shadow>\n          </value>\n        </block>',
-                    type: "colour_blend"
-                }
-            ],
-            id: "catColour",
-            colour: "20",
-            name: "Color"
-        },
+        // {
+        //     kind: "CATEGORY",
+        //     contents: [
+        //         {
+        //             kind: "BLOCK",
+        //             blockxml: '<block type="colour_picker"></block>',
+        //             type: "colour_picker"
+        //         },
+        //         {
+        //             kind: "BLOCK",
+        //             blockxml: '<block type="colour_random"></block>',
+        //             type: "colour_random"
+        //         },
+        //         {
+        //             kind: "BLOCK",
+        //             blockxml:
+        //                 '<block type="colour_rgb">\n          <value name="RED">\n            <shadow type="math_number">\n              <field name="NUM">100</field>\n            </shadow>\n          </value>\n          <value name="GREEN">\n            <shadow type="math_number">\n              <field name="NUM">50</field>\n            </shadow>\n          </value>\n          <value name="BLUE">\n            <shadow type="math_number">\n              <field name="NUM">0</field>\n            </shadow>\n          </value>\n        </block>',
+        //             type: "colour_rgb"
+        //         },
+        //         {
+        //             kind: "BLOCK",
+        //             blockxml:
+        //                 '<block type="colour_blend">\n          <value name="COLOUR1">\n            <shadow type="colour_picker">\n              <field name="COLOUR">#ff0000</field>\n            </shadow>\n          </value>\n          <value name="COLOUR2">\n            <shadow type="colour_picker">\n              <field name="COLOUR">#3333ff</field>\n            </shadow>\n          </value>\n          <value name="RATIO">\n            <shadow type="math_number">\n              <field name="NUM">0.5</field>\n            </shadow>\n          </value>\n        </block>',
+        //             type: "colour_blend"
+        //         }
+        //     ],
+        //     id: "catColour",
+        //     colour: "20",
+        //     name: "Color"
+        // },
         {
             kind: "SEP"
         },
@@ -627,6 +660,20 @@ export const toolbox2 = {
         {
             kind: "block",
             type: "move",
+            inputs: {
+                NAME: {
+                    shadow: {
+                        type: "math_number",
+                        fields: {
+                            NUM: 1
+                        }
+                    }
+                }
+            }
+        },
+        {
+            kind: "block",
+            type: "increment",
             inputs: {
                 NAME: {
                     shadow: {
@@ -731,7 +778,7 @@ export const defaultBlockly = {
                 inputs: {
                     NAME: {
                         block: {
-                            type: "move",
+                            type: "increment",
                             id: "^g_)#B(4!js7/]9PN;j9",
                             inputs: {
                                 NAME: {
@@ -740,6 +787,23 @@ export const defaultBlockly = {
                                         id: "FDuw1#2g%GPjY4uoIN=/",
                                         fields: {
                                             NUM: 1
+                                        }
+                                    }
+                                }
+                            },
+                            next: {
+                                block: {
+                                    type: "move",
+                                    id: "^b_)#B(4!js7/]9PN;j9",
+                                    inputs: {
+                                        NAME: {
+                                            shadow: {
+                                                type: "math_number",
+                                                id: "BDuw1#2g%GPjY4uoIN=/",
+                                                fields: {
+                                                    NUM: 1
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -752,7 +816,7 @@ export const defaultBlockly = {
     }
 };
 
-export const injectOptions = {
+export const injectOptions: Blockly.BlocklyOptions = {
     renderer: "zelos",
     theme: "zelos",
     move: {

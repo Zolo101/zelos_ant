@@ -32,13 +32,9 @@ class Board {
         this.cells[y * this.width + x] = value;
     }
 
-    incrementCell(x: number, y: number) {
+    incrementCell(x: number, y: number, by: number = 1) {
         const id = this.getCell(x, y);
-        // id = (id + 1) & (Game.tiles.length - 1)
-        this.setCell(x, y, id < tiles.size - 1 ? id + 1 : 0);
-        // console.log(id, game.tiles.size, id < game.tiles.size - 1)
-
-        return;
+        this.setCell(x, y, (id + by) % tiles.size);
     }
 
     addAnt(x: number, y: number) {

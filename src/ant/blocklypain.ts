@@ -3,7 +3,7 @@ import { javascriptGenerator } from "blockly/javascript";
 
 type BlockConstructorType = {
     name: string;
-    json: {};
+    json: Record<string, unknown>;
     tooltip: (block: Blockly.Block) => string;
     onRun: (block: Blockly.Block) => string;
 };

@@ -23,11 +23,11 @@ class Ant {
     }
 
     turnLeft() {
-        this.rotation = (this.rotation - 1) & 3;
+        this.rotation = (this.rotation + 1) & 3;
     }
 
     turnRight() {
-        this.rotation = (this.rotation + 1) & 3;
+        this.rotation = (this.rotation - 1) & 3;
     }
 
     turnBack() {
@@ -63,6 +63,10 @@ class Ant {
 
         if (this.position.y < 0) this.position.y += Game.board.width;
         if (this.position.y >= Game.board.height) this.position.y -= Game.board.width;
+    }
+
+    incrementCell(by: number = 1) {
+        Game.board.incrementCell(this.position.x, this.position.y, by);
     }
 }
 
