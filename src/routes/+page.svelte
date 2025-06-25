@@ -1,8 +1,6 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import * as Blockly from "blockly";
-    import Tab from "../component/Tab.svelte";
-    import Alert from "../component/Alert.svelte";
     import Stats from "../component/Stats.svelte";
     import Controls from "../component/page/Controls.svelte";
     import { javascriptGenerator } from "blockly/javascript";
@@ -20,17 +18,26 @@
     } from "../ant/blockly";
     import { addBlockToBlockly } from "../ant/blocklypain";
     import Renderer from "../ant/render/webgl2";
-    import { height, tiles, width } from "../ant/stores.svelte";
+    import { height, tiles, width, type Save } from "../ant/stores.svelte";
     import type { WorkspaceSvg } from "blockly";
     import Tiles from "../component/page/Tiles.svelte";
     import Tile from "../ant/tile";
+    import Saves from "../component/page/Saves.svelte";
+    import zelosAntLogo from "$lib/assets/zelos_ant.png";
+    import Link from "../component/Link.svelte";
+    import sync from "../ant/sync.svelte";
+    import { devicePixelRatio, innerHeight } from "svelte/reactivity/window";
+    import { fade } from "svelte/transition";
 
-    let canvas: HTMLCanvasElement;
-    let workspace: WorkspaceSvg;
-    let renderer: Renderer;
-    let DPR = $state(1);
+    let canvas: HTMLCanvasElement | null = $state(null);
+    let workspace: WorkspaceSvg | null = $state(null);
+    let renderer: Renderer | null = $state(null);
+    let DPR = $state(devicePixelRatio.current ?? 1);
+    let showSaves = $state(false);
+
+    let saves: Save[] = sync("ant-saves", []);
     onMount(() => {
-        const gl2 = canvas.getContext("webgl2") as WebGL2RenderingContext;
+        const gl2 = canvas!.getContext("webgl2") as WebGL2RenderingContext;
 
         renderer = new Renderer(gl2);
         Game.clear();
@@ -164,7 +171,7 @@
                 e.type === Blockly.Events.BLOCK_CHANGE ||
                 e.type === Blockly.Events.BLOCK_MOVE
             ) {
-                const newCode = javascriptGenerator.workspaceToCode(workspace);
+                const newCode = javascriptGenerator.workspaceToCode(workspace!);
                 if (newCode === code) return;
 
                 if (e.type === Blockly.Events.BLOCK_MOVE) {
@@ -216,29 +223,28 @@
     ];
 
     function addTile() {
-        Game.addTile(renderer, randomColour(), ["turn left"]);
-        // window.dispatchEvent(updateTileEvent);
-        // window.dispatchEvent(newTileEvent);
-        const block = workspace.newBlock("on");
+        Game.addTile(renderer!, randomColour(), ["turn left"]);
+
+        const block = workspace!.newBlock("on");
         block.setFieldValue(tiles.size - 1, "TileID");
         block.initSvg();
         block.render();
 
-        const turnBlock = workspace.newBlock("turn");
+        const turnBlock = workspace!.newBlock("turn");
         turnBlock.setFieldValue("Left", "Directions");
         turnBlock.initSvg();
         turnBlock.render();
 
         // console.log(block.getInput("NAME").connection, turnBlock.previousConnection)
-        block.getInput("NAME").connection.connect(turnBlock.previousConnection);
+        block.getInput("NAME")!.connection!.connect(turnBlock.previousConnection);
 
-        workspace.render();
+        workspace!.render();
         Game.restart();
     }
 
     function frame() {
-        if (!Game.instance.updateInProgress && !Game.instance.paused) Game.tick(renderer, iterate);
-        renderer.render();
+        if (!Game.instance.updateInProgress && !Game.instance.paused) Game.tick(renderer!, iterate);
+        renderer!.render();
 
         window.requestAnimationFrame(frame);
     }
@@ -246,22 +252,52 @@
     function iterate() {
         for (const ant of Game.board.ants) {
             // Move
-            // const oldPos = ant.position;
             Game.onEachIteration(ant);
 
             const cell = Game.board.getCell(ant.position.x, ant.position.y);
-            const func = Game.tileTriggers.get(cell);
-            if (func) func(ant);
 
-            // Game.board.incrementCell(oldPos.x, oldPos.y);
+            // Attempt to run the trigger function if exists
+            Game.tileTriggers.get(cell)?.(ant);
         }
     }
+
+    let headerHeight = $state(0);
 </script>
 
-<svelte:window bind:devicePixelRatio={DPR} />
-
+<header class="flex items-end gap-3 text-xs font-medium" bind:clientHeight={headerHeight}>
+    <img
+        src={zelosAntLogo}
+        alt="Zelos Ant Logo"
+        width={164 / DPR}
+        class="mt-3 ml-3 hue-rotate-280"
+        style="image-rendering: pixelated;"
+    />
+    <p>2.0.0</p>
+    <span>•</span>
+    <Link href="https://github.com/Zolo101/zelos_ant">GitHub</Link>
+    <span>•</span>
+    <button onclick={() => (showSaves = !showSaves)}>Saved Rules</button>
+</header>
 <main class="flex gap-3 p-3">
-    <div class="flex w-1/2 flex-col gap-2">
+    <div class="grow">
+        <div class="relative h-full w-full">
+            <div
+                class="absolute top-0 left-0 w-full"
+                id="blockly"
+                style="height: {innerHeight.current! - headerHeight - 24}px;"
+            ></div>
+            {#if showSaves}
+                <div
+                    transition:fade={{ duration: 100 }}
+                    class="absolute top-0 left-0 z-[99999] w-full overflow-auto"
+                    style="height: {innerHeight.current! - headerHeight - 24}px;"
+                >
+                    <Saves {saves} {renderer} {workspace} {canvas} />
+                </div>
+            {/if}
+        </div>
+    </div>
+    <div class="flex max-w-1/2 flex-col gap-2" style="width: {width / DPR}px;">
         <Stats />
         <canvas
             bind:this={canvas}
@@ -274,9 +310,4 @@
         <Tiles {addTile} />
         <Controls {renderer} {iterate} />
     </div>
-    <div class="w-1/2">
-        <Tab />
-    </div>
 </main>
-
-<Alert />

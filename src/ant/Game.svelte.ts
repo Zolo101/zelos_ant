@@ -2,9 +2,7 @@ import Board from "./board";
 import Tile from "./tile";
 import Ant from "./ant";
 import * as Blockly from "blockly";
-import Save from "./save";
-import { addSave } from "./db";
-import { clear, colours, height, importTiles, tiles, width } from "./stores.svelte";
+import { clear, colours, height, importTiles, tiles, width, type Save } from "./stores.svelte";
 import type Renderer from "./render/webgl2";
 
 // export let iterations = $state(0);
@@ -50,6 +48,7 @@ export default class Game {
     }
 
     static saveSnapshot(
+        saves: Save[],
         renderer: Renderer,
         workspace: Blockly.WorkspaceSvg,
         canvas: HTMLCanvasElement
@@ -58,17 +57,17 @@ export default class Game {
         let name = prompt("Name your save")?.trim();
         if (!name) name = "Untitled Save";
 
-        const save = new Save(
+        saves.push({
             name,
-            Blockly.serialization.workspaces.save(workspace),
-            Array.from(tiles),
-            Game.takePicture(renderer, canvas)
-        );
-        addSave(save).then(() => (Game.instance.alertText = "Rules saved!"));
+            date: new Date(),
+            blockly: Blockly.serialization.workspaces.save(workspace),
+            tiles: Array.from(tiles),
+            src: Game.takePicture(renderer, canvas)
+        });
     }
 
     static loadSnapshot(save: Save, renderer: Renderer, workspace: Blockly.WorkspaceSvg) {
-        importTiles(save.tile);
+        importTiles(save.tiles);
         // tiles = save.tile;
         // colours = save.tile.map((t) => t.colour);
         Blockly.serialization.workspaces.load(save.blockly, workspace);

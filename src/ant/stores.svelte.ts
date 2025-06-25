@@ -7,6 +7,15 @@ export const height = $state(800);
 export const tiles: Set<Tile> = new SvelteSet();
 export const colours: Set<Tile["colour"]> = new SvelteSet();
 
+export type Save = {
+    id?: number;
+    name: string;
+    date: Date;
+    blockly: Record<string, unknown>;
+    tiles: Tile[];
+    src: string;
+};
+
 export const clear = () => {
     tiles.clear();
     colours.clear();
