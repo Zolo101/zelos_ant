@@ -27,7 +27,7 @@ export const [
         ],
         previousStatement: null,
         nextStatement: null,
-        colour: 195,
+        colour: "#4cbfe6",
         tooltip: "",
         helpUrl: ""
     },
@@ -48,7 +48,7 @@ export const [
         ],
         previousStatement: null,
         nextStatement: null,
-        colour: 230,
+        colour: "#4cbfe6",
         tooltip: "",
         helpUrl: ""
     },
@@ -81,7 +81,7 @@ export const [
                 name: "NAME"
             }
         ],
-        colour: 0,
+        colour: "#ffbf01",
         tooltip: "",
         helpUrl: ""
     },
@@ -97,7 +97,7 @@ export const [
         ],
         previousStatement: null,
         nextStatement: null,
-        colour: 230,
+        colour: "#4c97ff",
         tooltip: "",
         helpUrl: ""
     },
@@ -113,7 +113,7 @@ export const [
         ],
         previousStatement: null,
         nextStatement: null,
-        colour: 230,
+        colour: "#4c97ff",
         tooltip: "",
         helpUrl: ""
     },
@@ -129,7 +129,7 @@ export const [
                 name: "NAME"
             }
         ],
-        colour: 0,
+        colour: "#ffbf01",
         tooltip: "",
         helpUrl: ""
     },
@@ -151,7 +151,7 @@ export const [
                 name: "NAME"
             }
         ],
-        colour: 0,
+        colour: "#ffbf01",
         tooltip: "",
         helpUrl: ""
     },
@@ -185,7 +185,7 @@ export const [
         inputsInline: true,
         previousStatement: null,
         nextStatement: null,
-        colour: 90,
+        colour: "#ff6680",
         tooltip: "",
         helpUrl: ""
     },
@@ -248,40 +248,41 @@ export const toolbox = {
                 {
                     kind: "block",
                     type: "iteration"
-                },
+                }
                 // {
                 //     "kind": "block",
                 //     "type": "iteration_onevery"
                 // },
-                {
-                    kind: "block",
-                    type: "create_ant",
-                    inputs: {
-                        X: {
-                            shadow: {
-                                type: "math_number",
-                                fields: {
-                                    NUM: 1
-                                }
-                            }
-                        },
-                        Y: {
-                            shadow: {
-                                type: "math_number",
-                                fields: {
-                                    NUM: 1
-                                }
-                            }
-                        }
-                    }
-                }
+                // TODO: Removed for now (not really useful)
+                // {
+                //     kind: "block",
+                //     type: "create_ant",
+                //     inputs: {
+                //         X: {
+                //             shadow: {
+                //                 type: "math_number",
+                //                 fields: {
+                //                     NUM: 1
+                //                 }
+                //             }
+                //         },
+                //         Y: {
+                //             shadow: {
+                //                 type: "math_number",
+                //                 fields: {
+                //                     NUM: 1
+                //                 }
+                //             }
+                //         }
+                //     }
+                // }
                 // {
                 //     "kind": "block",
                 //     "type": "create_ant_on_ant"
                 // },
             ],
             id: "catZA",
-            colour: "0",
+            colour: "#981d98",
             name: "Ant"
         },
         {
@@ -327,7 +328,7 @@ export const toolbox = {
                 }
             ],
             id: "catLogic",
-            colour: "210",
+            colour: "#4c97ff",
             name: "Logic"
         },
         {
@@ -362,7 +363,7 @@ export const toolbox = {
                 }
             ],
             id: "catLoops",
-            colour: "120",
+            colour: "#0fbd8c",
             name: "Loops"
         },
         {
@@ -444,7 +445,7 @@ export const toolbox = {
                 }
             ],
             id: "catMath",
-            colour: "230",
+            colour: "#59c059",
             name: "Math"
         },
         {
@@ -522,8 +523,48 @@ export const toolbox = {
                 }
             ],
             id: "catText",
-            colour: "160",
+            colour: "#ffd500",
             name: "Text"
+        },
+        // {
+        //     kind: "CATEGORY",
+        //     contents: [
+        //         {
+        //             kind: "BLOCK",
+        //             blockxml: '<block type="colour_picker"></block>',
+        //             type: "colour_picker"
+        //         },
+        //         {
+        //             kind: "BLOCK",
+        //             blockxml: '<block type="colour_random"></block>',
+        //             type: "colour_random"
+        //         },
+        //         {
+        //             kind: "BLOCK",
+        //             blockxml:
+        //                 '<block type="colour_rgb">\n          <value name="RED">\n            <shadow type="math_number">\n              <field name="NUM">100</field>\n            </shadow>\n          </value>\n          <value name="GREEN">\n            <shadow type="math_number">\n              <field name="NUM">50</field>\n            </shadow>\n          </value>\n          <value name="BLUE">\n            <shadow type="math_number">\n              <field name="NUM">0</field>\n            </shadow>\n          </value>\n        </block>',
+        //             type: "colour_rgb"
+        //         },
+        //         {
+        //             kind: "BLOCK",
+        //             blockxml:
+        //                 '<block type="colour_blend">\n          <value name="COLOUR1">\n            <shadow type="colour_picker">\n              <field name="COLOUR">#ff0000</field>\n            </shadow>\n          </value>\n          <value name="COLOUR2">\n            <shadow type="colour_picker">\n              <field name="COLOUR">#3333ff</field>\n            </shadow>\n          </value>\n          <value name="RATIO">\n            <shadow type="math_number">\n              <field name="NUM">0.5</field>\n            </shadow>\n          </value>\n        </block>',
+        //             type: "colour_blend"
+        //         }
+        //     ],
+        //     id: "catColour",
+        //     colour: "20",
+        //     name: "Color"
+        // },
+        {
+            kind: "SEP"
+        },
+        {
+            kind: "CATEGORY",
+            id: "catVariables",
+            colour: "#ff8c1a",
+            custom: "VARIABLE",
+            name: "Variables"
         },
         {
             kind: "CATEGORY",
@@ -592,53 +633,13 @@ export const toolbox = {
                 }
             ],
             id: "catLists",
-            colour: "260",
+            colour: "#9966ff",
             name: "Lists"
-        },
-        // {
-        //     kind: "CATEGORY",
-        //     contents: [
-        //         {
-        //             kind: "BLOCK",
-        //             blockxml: '<block type="colour_picker"></block>',
-        //             type: "colour_picker"
-        //         },
-        //         {
-        //             kind: "BLOCK",
-        //             blockxml: '<block type="colour_random"></block>',
-        //             type: "colour_random"
-        //         },
-        //         {
-        //             kind: "BLOCK",
-        //             blockxml:
-        //                 '<block type="colour_rgb">\n          <value name="RED">\n            <shadow type="math_number">\n              <field name="NUM">100</field>\n            </shadow>\n          </value>\n          <value name="GREEN">\n            <shadow type="math_number">\n              <field name="NUM">50</field>\n            </shadow>\n          </value>\n          <value name="BLUE">\n            <shadow type="math_number">\n              <field name="NUM">0</field>\n            </shadow>\n          </value>\n        </block>',
-        //             type: "colour_rgb"
-        //         },
-        //         {
-        //             kind: "BLOCK",
-        //             blockxml:
-        //                 '<block type="colour_blend">\n          <value name="COLOUR1">\n            <shadow type="colour_picker">\n              <field name="COLOUR">#ff0000</field>\n            </shadow>\n          </value>\n          <value name="COLOUR2">\n            <shadow type="colour_picker">\n              <field name="COLOUR">#3333ff</field>\n            </shadow>\n          </value>\n          <value name="RATIO">\n            <shadow type="math_number">\n              <field name="NUM">0.5</field>\n            </shadow>\n          </value>\n        </block>',
-        //             type: "colour_blend"
-        //         }
-        //     ],
-        //     id: "catColour",
-        //     colour: "20",
-        //     name: "Color"
-        // },
-        {
-            kind: "SEP"
-        },
-        {
-            kind: "CATEGORY",
-            id: "catVariables",
-            colour: "330",
-            custom: "VARIABLE",
-            name: "Variables"
         },
         {
             kind: "CATEGORY",
             id: "catFunctions",
-            colour: "290",
+            colour: "#ff6680",
             custom: "PROCEDURE",
             name: "Functions"
         }
@@ -827,7 +828,7 @@ export const injectOptions: Blockly.BlocklyOptions = {
     grid: {
         spacing: 25,
         length: 3,
-        colour: "#ccc",
+        colour: "rgba(255, 255, 255, 0.2)",
         snap: true
     },
 
