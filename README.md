@@ -1,4 +1,4 @@
-![zelo's ant logo](static/zelos_ant_3x.png)
+![zelo's ant logo](src/lib/assets/zelos_ant_3x.png)
 
 zelo's ant is an interactive Langton's ant simulator on the web. Create your own rules and see what patterns the ant(s) makes.
 
