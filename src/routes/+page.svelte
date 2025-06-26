@@ -22,7 +22,6 @@
     import { height, tiles, width, type Save, type Tile } from "../ant/stores.svelte";
     import type { WorkspaceSvg } from "blockly";
     import Tiles from "../component/page/Tiles.svelte";
-    import Tile from "../ant/tile";
     import Saves from "../component/page/Saves.svelte";
     import zelosAntLogo from "$lib/assets/zelos_ant.png";
     import Link from "../component/Link.svelte";
@@ -36,6 +35,7 @@
     let renderer: Renderer | null = $state(null);
     let DPR = $state(devicePixelRatio.current ?? 1);
     let showSaves = $state(false);
+    let fps = $state(0);
 
     let saves: Save[] = sync("ant-saves", []);
     onMount(() => {
@@ -190,7 +190,6 @@
                 }
 
                 if (newCode === code) return;
-
                 if (e.type === Blockly.Events.BLOCK_MOVE) {
                     if (newCode !== code) {
                         if (e?.reason[0] === "disconnect" || e?.reason[0] === "connect") {
@@ -227,6 +226,10 @@
 
                 case "KeyP":
                     Game.instance.paused = !Game.instance.paused;
+                    break;
+
+                case "KeyT":
+                    fps = Game.tick(renderer!, iterate);
                     break;
             }
         });
@@ -282,7 +285,9 @@
     }
 
     function frame() {
-        if (!Game.instance.updateInProgress && !Game.instance.paused) Game.tick(renderer!, iterate);
+        if (!Game.instance.updateInProgress && !Game.instance.paused) {
+            fps = Game.tick(renderer!, iterate);
+        }
         renderer!.render();
 
         window.requestAnimationFrame(frame);
@@ -337,7 +342,7 @@
         </div>
     </div>
     <div class="flex max-w-1/2 flex-col gap-2" style="width: {width / DPR}px;">
-        <Stats />
+        <Stats {fps} />
         <canvas
             bind:this={canvas}
             style="max-height: {height / DPR}px; max-width: {width / DPR}px;"

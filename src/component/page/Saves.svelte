@@ -3,6 +3,7 @@
     import Screen from "../Screen.svelte";
     import type { Save } from "../../ant/stores.svelte";
     import Button from "../Button.svelte";
+    import { devicePixelRatio } from "svelte/reactivity/window";
 
     let { saves, renderer, workspace, canvas } = $props();
 
@@ -27,19 +28,29 @@
     };
 </script>
 
+<!-- 0.275 -->
 <section class="flex h-full flex-col items-center gap-4 bg-black/70 p-2 backdrop-blur-xs">
     <Button
         class="w-48 outline-purple-400/75!"
         onclick={() => Game.saveSnapshot(saves, renderer, workspace, canvas)}>Save Rules</Button
     >
-    <hr class="w-full" />
-    <div class="flex flex-wrap gap-3">
+    <hr class="w-full text-white/50" />
+    <div class="m-auto flex flex-wrap gap-3 pb-10">
         {#if saves}
             {#each saves as save, index}
-                <div>
+                <div
+                    class="outline-2"
+                    style="background-color: {fColour(index)}; color: {bColour(index)}"
+                >
                     <button class="cursor-pointer" onclick={() => loadSave(save)}>
-                        <Screen id={index} src={save.src} width={800} height={800} scale={0.16} />
-                        <div style="background-color: {fColour(index)}; color: {bColour(index)}">
+                        <Screen
+                            id={index}
+                            src={save.src}
+                            width={800 / devicePixelRatio.current!}
+                            height={800 / devicePixelRatio.current!}
+                            scale={0.24}
+                        />
+                        <div>
                             <p
                                 class="overflow-x-hidden px-1 text-center font-bold overflow-ellipsis"
                             >
