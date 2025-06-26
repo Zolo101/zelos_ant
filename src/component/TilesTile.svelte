@@ -1,5 +1,5 @@
 <script lang="ts">
-    import Tile from "../ant/tile";
+    import type { Tile } from "../ant/stores.svelte";
 
     const { tile, index, ...rest }: { tile: Tile; index: number; rest: any } = $props();
     let rgbColor = $derived(`rgb(${tile.colour[0]},${tile.colour[1]},${tile.colour[2]})`);

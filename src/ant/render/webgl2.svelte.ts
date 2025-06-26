@@ -2,12 +2,13 @@ import * as twgl from "twgl.js";
 import "webgl-lint";
 import vertexShader from "./vertex.glsl?raw";
 import fragmentShader from "./fragment.glsl?raw";
-import { colours, height, width } from "../stores.svelte";
+import { height, tiles, width, type Tile } from "../stores.svelte";
+
+const colours: Tile["colour"][] = $derived(tiles.map((t) => t.colour));
 
 export default class Renderer {
     gl: WebGL2RenderingContext;
     programInfo: twgl.ProgramInfo;
-    objects: any[];
     tileTexture: WebGLTexture;
     colours: WebGLTexture;
     tiles: Uint8ClampedArray;
@@ -17,7 +18,6 @@ export default class Renderer {
         this.gl = gl;
         const program = twgl.createProgram(gl, [vertexShader, fragmentShader]);
         this.programInfo = twgl.createProgramInfoFromProgram(gl, program);
-        this.objects = [];
         this.tiles = new Uint8ClampedArray(width * height);
         this.bufferInfo = twgl.primitives.createXYQuadBufferInfo(gl);
 
@@ -43,7 +43,8 @@ export default class Renderer {
 
     updateColours() {
         const texture = new Uint8ClampedArray(3 * 1024);
-        texture.set(Array.from(colours).flat(), 0);
+
+        texture.set(colours.flat(), 0);
         twgl.setTextureFromArray(this.gl, this.colours, texture, {
             format: this.gl.RGB,
             width: 1024,

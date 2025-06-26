@@ -1,11 +1,9 @@
-import { SvelteSet } from "svelte/reactivity";
-import type Tile from "./tile";
-
 export const width = $state(800);
 export const height = $state(800);
 
-export const tiles: Set<Tile> = new SvelteSet();
-export const colours: Set<Tile["colour"]> = new SvelteSet();
+export const tiles: Tile[] = $state([]);
+
+export const getColours = () => tiles.map((t) => t.colour);
 
 export type Save = {
     id?: number;
@@ -16,16 +14,18 @@ export type Save = {
     src: string;
 };
 
+export type Tile = {
+    colour: [number, number, number];
+    triggers: string[];
+};
+
 export const clear = () => {
-    tiles.clear();
-    colours.clear();
+    tiles.length = 0;
 };
 export const importTiles = (t: Tile[]) => {
-    tiles.clear();
-    colours.clear();
+    tiles.length = 0;
 
     t.forEach((tile) => {
-        tiles.add(tile);
-        colours.add(tile.colour);
+        tiles.push(tile);
     });
 };

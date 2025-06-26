@@ -34,7 +34,7 @@ class Board {
 
     incrementCell(x: number, y: number, by: number = 1) {
         const id = this.getCell(x, y);
-        this.setCell(x, y, (id + by) % tiles.size);
+        this.setCell(x, y, (id + by) % tiles.length);
     }
 
     addAnt(x: number, y: number) {

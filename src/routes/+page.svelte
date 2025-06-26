@@ -1,6 +1,7 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import * as Blockly from "blockly";
+    import "@blockly/field-colour-hsv-sliders";
     import Stats from "../component/Stats.svelte";
     import Controls from "../component/page/Controls.svelte";
     import { javascriptGenerator } from "blockly/javascript";
@@ -17,8 +18,8 @@
         incrementJSON
     } from "../ant/blockly";
     import { addBlockToBlockly } from "../ant/blocklypain";
-    import Renderer from "../ant/render/webgl2";
-    import { height, tiles, width, type Save } from "../ant/stores.svelte";
+    import Renderer from "../ant/render/webgl2.svelte";
+    import { height, tiles, width, type Save, type Tile } from "../ant/stores.svelte";
     import type { WorkspaceSvg } from "blockly";
     import Tiles from "../component/page/Tiles.svelte";
     import Tile from "../ant/tile";
@@ -28,6 +29,7 @@
     import sync from "../ant/sync.svelte";
     import { devicePixelRatio, innerHeight } from "svelte/reactivity/window";
     import { fade } from "svelte/transition";
+    import { hexToRgb, rgbToHex } from "../ant/util";
 
     let canvas: HTMLCanvasElement | null = $state(null);
     let workspace: WorkspaceSvg | null = $state(null);
@@ -169,9 +171,24 @@
                 // e.type === Blockly.Events.BLOCK_DELETE ||
                 e.type === Blockly.Events.FINISHED_LOADING ||
                 e.type === Blockly.Events.BLOCK_CHANGE ||
-                e.type === Blockly.Events.BLOCK_MOVE
+                e.type === Blockly.Events.BLOCK_MOVE ||
+                e.type === Blockly.Events.BLOCK_FIELD_INTERMEDIATE_CHANGE
             ) {
                 const newCode = javascriptGenerator.workspaceToCode(workspace!);
+                if (e.type === Blockly.Events.BLOCK_FIELD_INTERMEDIATE_CHANGE) {
+                    const { name, blockId, newValue } =
+                        e as Blockly.Events.BlockFieldIntermediateChange;
+                    if (name === "COLOUR") {
+                        // In the case of colour
+                        // Find the block and its tileId
+                        const block = workspace!.getBlockById(blockId!);
+                        const tileId = block?.getFieldValue("TileID");
+                        // console.log(tileId, newValue);
+
+                        tiles[tileId].colour = hexToRgb(newValue as string)!;
+                    }
+                }
+
                 if (newCode === code) return;
 
                 if (e.type === Blockly.Events.BLOCK_MOVE) {
@@ -214,6 +231,10 @@
             }
         });
         window.requestAnimationFrame(frame);
+
+        $effect(() => {
+            renderer?.updateColours();
+        });
     });
 
     const randomColour = (): Tile["colour"] => [
@@ -222,21 +243,39 @@
         ~~(Math.random() * 255)
     ];
 
+    function findOnTileBlock(index: number) {
+        for (const block of workspace!.getAllBlocks()) {
+            if (block.getFieldValue("TileID") === index) {
+                return block;
+            }
+        }
+        return null;
+    }
+
     function addTile() {
         Game.addTile(renderer!, randomColour(), ["turn left"]);
 
-        const block = workspace!.newBlock("on");
-        block.setFieldValue(tiles.size - 1, "TileID");
-        block.initSvg();
-        block.render();
+        // Check if the block already exists
+        const existingBlock = findOnTileBlock(tiles.length - 1);
+        const tile = tiles[tiles.length - 1];
+        if (existingBlock) {
+            existingBlock.setFieldValue(rgbToHex(...tile.colour), "COLOUR");
+        } else {
+            const block = workspace!.newBlock("on");
+            block.setFieldValue(tiles.length - 1, "TileID");
 
-        const turnBlock = workspace!.newBlock("turn");
-        turnBlock.setFieldValue("Left", "Directions");
-        turnBlock.initSvg();
-        turnBlock.render();
+            block.setFieldValue(rgbToHex(...tile.colour), "COLOUR");
+            block.initSvg();
+            block.render();
 
-        // console.log(block.getInput("NAME").connection, turnBlock.previousConnection)
-        block.getInput("NAME")!.connection!.connect(turnBlock.previousConnection);
+            const turnBlock = workspace!.newBlock("turn");
+            turnBlock.setFieldValue("Left", "Directions");
+            turnBlock.initSvg();
+            turnBlock.render();
+
+            // console.log(block.getInput("NAME").connection, turnBlock.previousConnection)
+            block.getInput("NAME")!.connection!.connect(turnBlock.previousConnection);
+        }
 
         workspace!.render();
         Game.restart();
@@ -278,7 +317,7 @@
     <span>•</span>
     <button onclick={() => (showSaves = !showSaves)}>Saved Rules</button>
 </header>
-<main class="flex gap-3 p-3">
+<main class="flex p-3">
     <div class="grow">
         <div class="relative h-full w-full">
             <div

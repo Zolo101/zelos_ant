@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@blockly/field-colour-hsv-sliders':
+        specifier: ^6.0.2
+        version: 6.0.2(blockly@12.1.0)
       blockly:
         specifier: ^12.1.0
         version: 12.1.0
@@ -99,6 +102,24 @@ packages:
 
   '@asamuzakjp/css-color@3.2.0':
     resolution: {integrity: sha512-K1A6z8tS3XsmCMM86xoWdn7Fkdn9m6RSVtocUrJYIwZnFVkng/PvkEoWtOWmP+Scc6saYWHWZYbndEEXxl24jw==}
+
+  '@blockly/field-colour-hsv-sliders@6.0.2':
+    resolution: {integrity: sha512-Q9bCyqDNJSFLNc2akeRYcJ3yT+X4vLU9Fdh4RpE0vIax4himQDC0edmovcaZgJV8TES0O+6MnRm2IwXFKKdBcw==}
+    engines: {node: '>=8.0.0'}
+    peerDependencies:
+      blockly: ^12.0.0
+
+  '@blockly/field-colour@6.0.2':
+    resolution: {integrity: sha512-IJMGKei53+n9Ld5kFxpMptq6KxeJ8sbrWF+YWqH5f4nMojiOhvGK8dkuM0s69OiiHByPr5YBIr1+aZQReKnN3Q==}
+    engines: {node: '>=8.0.0'}
+    peerDependencies:
+      blockly: ^12.0.0
+
+  '@blockly/field-grid-dropdown@6.0.1':
+    resolution: {integrity: sha512-Y3H5Z4A4cwhbIqP2pWJNTIGoCiKtYUdveZk8U83wGk9goQL2cUgQ4jfpEaxjfZVG+VG4mBwVV4nZHFDc6cJJJQ==}
+    engines: {node: '>=8.17.0'}
+    peerDependencies:
+      blockly: ^12.0.0
 
   '@csstools/color-helpers@5.0.2':
     resolution: {integrity: sha512-JqWH1vsgdGcw2RR6VliXXdA0/59LttzlU8UlRT/iUUsEeWfYq8I+K0yhihEUTTHLRm1EXvpsCx3083EU15ecsA==}
@@ -1753,6 +1774,20 @@ snapshots:
       '@csstools/css-parser-algorithms': 3.0.5(@csstools/css-tokenizer@3.0.4)
       '@csstools/css-tokenizer': 3.0.4
       lru-cache: 10.4.3
+
+  '@blockly/field-colour-hsv-sliders@6.0.2(blockly@12.1.0)':
+    dependencies:
+      '@blockly/field-colour': 6.0.2(blockly@12.1.0)
+      blockly: 12.1.0
+
+  '@blockly/field-colour@6.0.2(blockly@12.1.0)':
+    dependencies:
+      '@blockly/field-grid-dropdown': 6.0.1(blockly@12.1.0)
+      blockly: 12.1.0
+
+  '@blockly/field-grid-dropdown@6.0.1(blockly@12.1.0)':
+    dependencies:
+      blockly: 12.1.0
 
   '@csstools/color-helpers@5.0.2': {}
 

@@ -55,7 +55,7 @@ export const [
     {
         kind: "block",
         type: "on",
-        message0: "On Tile %1 %2 %3",
+        message0: "On Tile %1 %2 %3 %4",
         // "inputs": {
         //     "TileID": {
         //         "block": {
@@ -72,6 +72,11 @@ export const [
                 name: "TileID",
                 value: 0,
                 min: 0
+            },
+            {
+                type: "field_colour_hsv_sliders",
+                name: "COLOUR",
+                colour: "#ff0000"
             },
             {
                 type: "input_dummy"
@@ -737,7 +742,8 @@ export const defaultBlockly = {
                 x: 13,
                 y: 13,
                 fields: {
-                    TileID: 0
+                    TileID: 0,
+                    COLOUR: "#000000"
                 },
                 inputs: {
                     NAME: {
@@ -757,7 +763,8 @@ export const defaultBlockly = {
                 x: 13,
                 y: 188,
                 fields: {
-                    TileID: 1
+                    TileID: 1,
+                    COLOUR: "#ffffff"
                 },
                 inputs: {
                     NAME: {
