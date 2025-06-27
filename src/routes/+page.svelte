@@ -41,12 +41,9 @@
     import { fade } from "svelte/transition";
     import { getBackgroundColour, getForegroundColour, hexToRgb, rgbToHex } from "$lib/util";
     import { page } from "$app/state";
-    import PocketBase from "pocketbase";
     import Board from "$lib/board";
     import type Ant from "$lib/ant";
 
-    // TODO: Unfortunately, the only reasonable way to share saves is to use a database...
-    const pb = new PocketBase("https://cdn.zelo.dev");
     let canvas: HTMLCanvasElement | null = $state(null);
     let workspace: WorkspaceSvg | null = $state(null);
     let renderer: Renderer | null = $state(null);
@@ -77,7 +74,7 @@
     });
     let sharedSave: Save | null = $state(null);
 
-    onMount(() => {
+    onMount(async () => {
         const gl2 = canvas!.getContext("webgl2") as WebGL2RenderingContext;
 
         renderer = new Renderer(gl2);
@@ -223,7 +220,8 @@
                 if (newCode === code) return;
                 if (e.type === Blockly.Events.BLOCK_MOVE) {
                     if (newCode !== code) {
-                        if (e?.reason[0] === "disconnect" || e?.reason[0] === "connect") {
+                        const { reason } = e as Blockly.Events.BlockMove;
+                        if (reason?.[0] === "disconnect" || reason?.[0] === "connect") {
                             return;
                         }
                     } else return;
@@ -287,10 +285,15 @@
             renderer?.updateColours();
         });
 
+        // TODO: Unfortunately, the only reasonable way to share saves is to use a database...
         // Load a save from the URL if it exists
         const params = page.url.searchParams.get("s");
         if (params) {
-            pb.collection("ant")
+            // Only import pocketbase when needed!
+            // TODO: Lazy class or something?
+            const { default: PocketBase } = await import("pocketbase");
+            new PocketBase("https://cdn.zelo.dev")
+                .collection("ant")
                 .getOne(params)
                 .then((save) => {
                     sharedSave = save.workspace;
@@ -505,7 +508,7 @@
                     class="absolute top-0 left-0 z-[99999] w-full overflow-auto"
                     style="height: {innerHeight.current! - headerHeight - 24}px;"
                 >
-                    <Saves {game} {saves} {renderer} {workspace} {pb} />
+                    <Saves {game} {saves} {renderer} {workspace} />
                 </div>
             {/if}
         </div>

@@ -3,7 +3,7 @@
     import { devicePixelRatio } from "svelte/reactivity/window";
     import { getBackgroundColour, getForegroundColour } from "$lib/util";
 
-    let { game, saves, index, renderer, workspace, pb } = $props();
+    let { game, saves, index, renderer, workspace } = $props();
     const save = $derived(saves[index]);
 
     const loadSave = (save: Save) => {
@@ -16,10 +16,13 @@
         }
     };
 
-    const shareSave = (save: PhotoSave) => {
+    const shareSave = async (save: PhotoSave) => {
         const { src, ...saveWithoutSrc } = save;
 
-        pb.collection("ant")
+        const { default: PocketBase } = await import("pocketbase");
+
+        new PocketBase("https://cdn.zelo.dev")
+            .collection("ant")
             .create({ workspace: saveWithoutSrc })
             .then((record) => {
                 const url = `${window.location.origin}/?s=${record.id}`;

@@ -1,4 +1,4 @@
-import * as Blockly from "blockly";
+import type { BlocklyOptions } from "blockly/core";
 import type { Tile } from "./stores.svelte";
 
 export const [
@@ -835,7 +835,7 @@ export const defaultTiles: Tile[] = [
     }
 ];
 
-export const injectOptions: Blockly.BlocklyOptions = {
+export const injectOptions: BlocklyOptions = {
     renderer: "zelos",
     theme: "zelos",
     move: {

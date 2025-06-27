@@ -10,6 +10,11 @@ enum AntRotation {
     West = 3
 }
 
+type Point = {
+    x: number;
+    y: number;
+};
+
 class Ant {
     position: Point;
     rotation: AntRotation;
