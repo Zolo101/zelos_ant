@@ -463,6 +463,11 @@
     {:else}
         <title>zelo's ant</title>
     {/if}
+    <script
+        defer
+        src="https://analytics.zelo.dev/script.js"
+        data-website-id="86e78800-b780-4b47-bccd-4da3f6e67f7b"
+    ></script>
 </svelte:head>
 
 <header class="flex items-end gap-3 text-xs font-medium" bind:clientHeight={headerHeight}>
@@ -477,7 +482,10 @@
     <span>•</span>
     <Link href="https://discord.gg/YVuuF9KB5j">Discord</Link>
     <span>•</span>
-    <button onclick={() => saveSnapshot(saves, renderer!, workspace!, canvas!)}>Save</button>
+    <button
+        data-umami-event="save"
+        onclick={() => saveSnapshot(saves, renderer!, workspace!, canvas!)}>Save</button
+    >
     <span>•</span>
     <button onclick={() => (showSaves = !showSaves)}>Load</button>
     <span>•</span>

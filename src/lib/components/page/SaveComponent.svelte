@@ -55,7 +55,7 @@
     class="outline-2"
     style="background-color: {getForegroundColour(save)}; color: {getBackgroundColour(save)}; "
 >
-    <button class="block cursor-pointer" onclick={() => loadSave(save)}>
+    <button data-umami-event="load" class="block cursor-pointer" onclick={() => loadSave(save)}>
         <img
             style="image-rendering: pixelated;"
             alt=""
@@ -76,7 +76,11 @@
                     year: "numeric"
                 })}
             </p>
-            <button class="text-blue-300 hover:cursor-pointer" onclick={() => shareSave(save)}>
+            <button
+                data-umami-event="share"
+                class="text-blue-300 hover:cursor-pointer"
+                onclick={() => shareSave(save)}
+            >
                 {shareText}
             </button>
             <button class="font-bold hover:cursor-pointer" onclick={() => deleteSave(index)}
