@@ -1,7 +1,16 @@
 import Board from "./board";
 import Ant from "./ant";
 import * as Blockly from "blockly";
-import { clear, height, importTiles, tiles, width, type Save, type Tile } from "./stores.svelte";
+import {
+    clear,
+    height,
+    importTiles,
+    tiles,
+    width,
+    type PhotoSave,
+    type Save,
+    type Tile
+} from "./stores.svelte";
 import type Renderer from "./render/webgl2.svelte";
 
 // Singleton
@@ -43,22 +52,21 @@ export default class Game {
     }
 
     static saveSnapshot(
-        saves: Save[],
+        saves: PhotoSave[],
         renderer: Renderer,
         workspace: Blockly.WorkspaceSvg,
         canvas: HTMLCanvasElement
     ) {
-        // save the current state of everything
-        let name = prompt("Name your save")?.trim();
-        if (!name) name = "Untitled Save";
-
-        saves.push({
-            name,
-            date: new Date(),
-            blockly: Blockly.serialization.workspaces.save(workspace),
-            tiles: Array.from(tiles),
-            src: Game.takePicture(renderer, canvas)
-        });
+        const name = prompt("Name your save")?.trim();
+        if (name) {
+            saves.push({
+                name,
+                date: new Date(),
+                blockly: Blockly.serialization.workspaces.save(workspace),
+                tiles: Array.from(tiles),
+                src: Game.takePicture(renderer, canvas)
+            });
+        }
     }
 
     static loadSnapshot(save: Save, renderer: Renderer, workspace: Blockly.WorkspaceSvg) {

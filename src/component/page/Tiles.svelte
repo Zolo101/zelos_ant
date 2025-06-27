@@ -1,18 +1,8 @@
 <script lang="ts">
-    import Game from "../../ant/Game.svelte";
     import TilesTile from "../TilesTile.svelte";
     import { tiles } from "../../ant/stores.svelte";
-    import type { Tile } from "../../ant/stores.svelte";
 
-    const { addTile } = $props();
-
-    const removeTile = (tile: Tile) => {
-        // Must be at least one tile
-        if (tiles.length - 1 === 0) return;
-
-        tiles.splice(tiles.indexOf(tile), 1);
-        Game.restart();
-    };
+    const { addTile, removeTile } = $props();
 </script>
 
 <section class="rounded bg-purple-950/40 p-2">

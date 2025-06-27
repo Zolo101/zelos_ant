@@ -1,3 +1,5 @@
+import type { Save } from "./stores.svelte";
+
 /**
  * Converts a hex color string to RGB values
  * @param hex - Hex color string (e.g., "#ff0000" or "ff0000")
@@ -39,4 +41,18 @@ export function rgbToHex(r: number, g: number, b: number): string {
     const toHex = (value: number) => value.toString(16).padStart(2, "0");
 
     return `#${toHex(red)}${toHex(green)}${toHex(blue)}`;
+}
+
+export function getForegroundColour(save: Save) {
+    const tile = save.tiles[0];
+    const [red, green, blue] = tile ? tile.colour : [255, 255, 255];
+    return `rgb(${red}, ${green}, ${blue})`;
+}
+
+export function getBackgroundColour(save: Save) {
+    const tile = save.tiles[1];
+    const tile0Colour = save.tiles[0].colour;
+    const inverse = [255 - tile0Colour[0], 255 - tile0Colour[1], 255 - tile0Colour[2]];
+    const [red, green, blue] = tile ? tile.colour : inverse;
+    return `rgb(${red}, ${green}, ${blue})`;
 }

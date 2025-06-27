@@ -1,4 +1,5 @@
 import * as Blockly from "blockly";
+import type { Tile } from "./stores.svelte";
 
 export const [
     turnJSON,
@@ -823,6 +824,16 @@ export const defaultBlockly = {
         ]
     }
 };
+export const defaultTiles: Tile[] = [
+    {
+        colour: [0, 0, 0],
+        triggers: ["turn right"]
+    },
+    {
+        colour: [255, 255, 255],
+        triggers: ["turn left"]
+    }
+];
 
 export const injectOptions: Blockly.BlocklyOptions = {
     renderer: "zelos",

@@ -43,6 +43,7 @@
     "dependencies": {
         "@blockly/field-colour-hsv-sliders": "^6.0.2",
         "blockly": "^12.1.0",
+        "pocketbase": "^0.26.1",
         "ramda": "^0.30.1",
         "twgl.js": "^6.1.1",
         "webgl-lint": "^1.11.4"

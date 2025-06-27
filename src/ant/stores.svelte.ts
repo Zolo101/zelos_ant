@@ -5,13 +5,13 @@ export const tiles: Tile[] = $state([]);
 
 export const getColours = () => tiles.map((t) => t.colour);
 
+export type PhotoSave = Save & { src: string };
+
 export type Save = {
-    id?: number;
     name: string;
     date: Date;
     blockly: Record<string, unknown>;
     tiles: Tile[];
-    src: string;
 };
 
 export type Tile = {

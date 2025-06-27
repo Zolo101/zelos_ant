@@ -4,7 +4,7 @@
     import "@blockly/field-colour-hsv-sliders";
     import Stats from "../component/Stats.svelte";
     import Controls from "../component/page/Controls.svelte";
-    import { javascriptGenerator } from "blockly/javascript";
+    import { javascriptGenerator, Order } from "blockly/javascript";
     import Game from "../ant/Game.svelte";
     import {
         turnJSON,
@@ -15,11 +15,19 @@
         createAntJSON,
         injectOptions,
         defaultBlockly,
-        incrementJSON
+        incrementJSON,
+        defaultTiles
     } from "../ant/blockly";
     import { addBlockToBlockly } from "../ant/blocklypain";
     import Renderer from "../ant/render/webgl2.svelte";
-    import { height, tiles, width, type Save, type Tile } from "../ant/stores.svelte";
+    import {
+        height,
+        tiles,
+        width,
+        type PhotoSave,
+        type Save,
+        type Tile
+    } from "../ant/stores.svelte";
     import type { WorkspaceSvg } from "blockly";
     import Tiles from "../component/page/Tiles.svelte";
     import Saves from "../component/page/Saves.svelte";
@@ -28,8 +36,12 @@
     import sync from "../ant/sync.svelte";
     import { devicePixelRatio, innerHeight } from "svelte/reactivity/window";
     import { fade } from "svelte/transition";
-    import { hexToRgb, rgbToHex } from "../ant/util";
+    import { getBackgroundColour, getForegroundColour, hexToRgb, rgbToHex } from "../ant/util";
+    import { page } from "$app/state";
+    import PocketBase from "pocketbase";
 
+    // TODO: Unfortunately, the only reasonable way to share saves is to use a database...
+    const pb = new PocketBase("https://cdn.zelo.dev");
     let canvas: HTMLCanvasElement | null = $state(null);
     let workspace: WorkspaceSvg | null = $state(null);
     let renderer: Renderer | null = $state(null);
@@ -37,7 +49,17 @@
     let showSaves = $state(false);
     let fps = $state(0);
 
-    let saves: Save[] = sync("ant-saves", []);
+    let saves: PhotoSave[] = sync("ant-saves", []);
+
+    // TODO: Make a default save generator so we don't have to hardcode this
+    let autoSave: Save = sync("current-save", {
+        name: "AutoSave",
+        date: new Date(),
+        blockly: defaultBlockly,
+        tiles: defaultTiles
+    });
+    let sharedSave: Save | null = $state(null);
+
     onMount(() => {
         const gl2 = canvas!.getContext("webgl2") as WebGL2RenderingContext;
 
@@ -49,7 +71,7 @@
 
         Game.board.addAnt(Game.board.width / 2, Game.board.height / 2);
 
-        console.log(tiles, Game.tileTriggers, Game.board.ants);
+        // console.log(tiles, Game.tileTriggers, Game.board.ants);
 
         addBlockToBlockly({
             name: "turn",
@@ -106,11 +128,7 @@
                 return `Moves the ant forward by ${block.getFieldValue("NAME")}.`;
             },
             onRun: (block: Blockly.Block) => {
-                const amount = javascriptGenerator.valueToCode(
-                    block,
-                    "NAME",
-                    javascriptGenerator.ORDER_ADDITION
-                );
+                const amount = javascriptGenerator.valueToCode(block, "NAME", Order.ADDITION);
                 return `ant.moveForward(${amount});\n`;
             }
         });
@@ -122,11 +140,7 @@
                 return `Increments the current cell by ${block.getFieldValue("NAME")}.`;
             },
             onRun: (block: Blockly.Block) => {
-                const amount = javascriptGenerator.valueToCode(
-                    block,
-                    "NAME",
-                    javascriptGenerator.ORDER_ADDITION
-                );
+                const amount = javascriptGenerator.valueToCode(block, "NAME", Order.ADDITION);
                 return `ant.incrementCell(${amount});\n`;
             }
         });
@@ -152,8 +166,8 @@
             },
             onRun: (block) => {
                 const [x, y] = [
-                    javascriptGenerator.valueToCode(block, "X", javascriptGenerator.ORDER_ADDITION),
-                    javascriptGenerator.valueToCode(block, "Y", javascriptGenerator.ORDER_ADDITION)
+                    javascriptGenerator.valueToCode(block, "X", Order.ADDITION),
+                    javascriptGenerator.valueToCode(block, "Y", Order.ADDITION)
                 ];
                 return `Game.board.addAnt(${x}, ${y});\n`;
             }
@@ -198,6 +212,7 @@
                     } else return;
                 }
                 code = newCode;
+                updateAutoSave();
                 console.log("reset!");
 
                 // Debug
@@ -211,8 +226,8 @@
                 try {
                     // eval for now (its slow)
                     eval(code);
-                } catch (er) {
-                    console.error("eval error", er);
+                } catch (err) {
+                    console.error("eval error", err);
                 }
             }
         });
@@ -233,11 +248,42 @@
                     break;
             }
         });
+
+        function updateAutoSave() {
+            autoSave.date = new Date();
+            autoSave.blockly = Blockly.serialization.workspaces.save(workspace!);
+            autoSave.tiles = tiles;
+
+            // weirdly enough as it turns out normal stringify is on par with the rest
+            // console.warn(LZString.compressToEncodedURIComponent(JSON.stringify(autoSave)));
+            // console.warn(JSON.stringify(compress(autoSave)));
+            // console.warn(JSON.stringify(autoSave));
+        }
+
+        if (autoSave) {
+            Game.loadSnapshot(autoSave, renderer!, workspace!);
+        }
+
         window.requestAnimationFrame(frame);
 
         $effect(() => {
             renderer?.updateColours();
         });
+
+        // Load a save from the URL if it exists
+        const params = page.url.searchParams.get("s");
+        if (params) {
+            pb.collection("ant")
+                .getOne(params)
+                .then((save) => {
+                    sharedSave = save.workspace;
+                    Game.loadSnapshot(save.workspace, renderer!, workspace!);
+                })
+                .catch((err) => {
+                    console.error(err);
+                    alert("Failed to load save... Please try again later");
+                });
+        }
     });
 
     const randomColour = (): Tile["colour"] => [
@@ -253,6 +299,18 @@
             }
         }
         return null;
+    }
+
+    // This is O(n^2). In my tests it only causes noticable lag after 100 tiles.
+    // OFC it can be O(n). If someone complains, I will optimise it.
+    function updateTileColours() {
+        for (let i = 0; i < tiles.length; i++) {
+            const tile = tiles[i];
+            const block = findOnTileBlock(i);
+            if (block) {
+                block.setFieldValue(rgbToHex(...tile.colour), "COLOUR");
+            }
+        }
     }
 
     function addTile() {
@@ -275,12 +333,24 @@
             turnBlock.setFieldValue("Left", "Directions");
             turnBlock.initSvg();
             turnBlock.render();
-
             // console.log(block.getInput("NAME").connection, turnBlock.previousConnection)
             block.getInput("NAME")!.connection!.connect(turnBlock.previousConnection);
         }
 
         workspace!.render();
+        Game.restart();
+    }
+
+    function removeTile(tile: Tile) {
+        // Must be at least one tile
+        if (tiles.length - 1 === 0) return;
+
+        // Remove the block
+        tiles.splice(tiles.indexOf(tile), 1);
+
+        // Update the tile colours
+        updateTileColours();
+
         Game.restart();
     }
 
@@ -305,8 +375,35 @@
         }
     }
 
+    function resetWorkspace() {
+        if (
+            confirm(
+                "Are you sure you want to reset? This will remove all modified blocks and tiles."
+            )
+        ) {
+            // Reset the auto save (or current save)
+            autoSave.date = new Date();
+            autoSave.blockly = defaultBlockly;
+            autoSave.tiles = defaultTiles;
+            Game.loadSnapshot(autoSave, renderer!, workspace!);
+
+            // Reset users' url search params
+            const url = new URL(window.location.href);
+            url.searchParams.delete("s");
+            window.history.replaceState({}, "", url.toString());
+        }
+    }
+
     let headerHeight = $state(0);
 </script>
+
+<svelte:head>
+    {#if sharedSave}
+        <title>{sharedSave.name} - zelo's ant</title>
+    {:else}
+        <title>zelo's ant</title>
+    {/if}
+</svelte:head>
 
 <header class="flex items-end gap-3 text-xs font-medium" bind:clientHeight={headerHeight}>
     <img
@@ -316,11 +413,28 @@
         class="mt-3 ml-3 hue-rotate-280"
         style="image-rendering: pixelated;"
     />
-    <p>2.0.0</p>
+    <Link href="https://github.com/Zolo101/zelos_ant">2.0.0</Link>
     <span>•</span>
-    <Link href="https://github.com/Zolo101/zelos_ant">GitHub</Link>
+    <Link href="https://discord.gg/YVuuF9KB5j">Discord</Link>
     <span>•</span>
-    <button onclick={() => (showSaves = !showSaves)}>Saved Rules</button>
+    <button onclick={() => Game.saveSnapshot(saves, renderer!, workspace!, canvas!)}>Save</button>
+    <span>•</span>
+    <button onclick={() => (showSaves = !showSaves)}>Load</button>
+    <span>•</span>
+    <button onclick={resetWorkspace}>Reset</button>
+    <span>•</span>
+    <button onclick={resetWorkspace}>Recently Shared</button>
+    {#if sharedSave}
+        <div class="ml-auto flex items-center gap-3 px-2">
+            <!-- <span>Viewing:</span> -->
+            <span
+                class="px-1"
+                style="background-color: {getForegroundColour(
+                    sharedSave
+                )}; color: {getBackgroundColour(sharedSave)}">{sharedSave?.name}</span
+            >
+        </div>
+    {/if}
 </header>
 <main class="flex p-3">
     <div class="grow">
@@ -336,7 +450,7 @@
                     class="absolute top-0 left-0 z-[99999] w-full overflow-auto"
                     style="height: {innerHeight.current! - headerHeight - 24}px;"
                 >
-                    <Saves {saves} {renderer} {workspace} {canvas} />
+                    <Saves {saves} {renderer} {workspace} {pb} />
                 </div>
             {/if}
         </div>
@@ -351,7 +465,7 @@
             {width}
             {height}
         ></canvas>
-        <Tiles {addTile} />
-        <Controls {renderer} {iterate} />
+        <Tiles {addTile} {removeTile} />
+        <Controls {renderer} {iterate} {fps} />
     </div>
 </main>
