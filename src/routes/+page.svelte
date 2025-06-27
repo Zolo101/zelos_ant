@@ -5,7 +5,6 @@
     import Stats from "../component/Stats.svelte";
     import Controls from "../component/page/Controls.svelte";
     import { javascriptGenerator, Order } from "blockly/javascript";
-    import Game from "../ant/Game.svelte";
     import {
         turnJSON,
         lookJSON,
@@ -22,8 +21,12 @@
     import Renderer from "../ant/render/webgl2.svelte";
     import {
         height,
+        loadSnapshot,
+        restartGame,
+        tick,
         tiles,
         width,
+        type Game,
         type PhotoSave,
         type Save,
         type Tile
@@ -39,6 +42,8 @@
     import { getBackgroundColour, getForegroundColour, hexToRgb, rgbToHex } from "../ant/util";
     import { page } from "$app/state";
     import PocketBase from "pocketbase";
+    import Board from "../ant/board";
+    import type Ant from "../ant/ant";
 
     // TODO: Unfortunately, the only reasonable way to share saves is to use a database...
     const pb = new PocketBase("https://cdn.zelo.dev");
@@ -47,7 +52,19 @@
     let renderer: Renderer | null = $state(null);
     let DPR = $state(devicePixelRatio.current ?? 1);
     let showSaves = $state(false);
-    let fps = $state(0);
+
+    let game: Game = $state({
+        board: new Board(width, height),
+        tileTriggers: new Map<number, (ant: Ant) => void>(),
+        onEachIteration: () => {},
+        alertText: "",
+        oldTiles: [],
+        updateInProgress: false,
+        paused: false,
+        fps: 0,
+        iterations: 0,
+        iterationsPerTick: 100
+    });
 
     let saves: PhotoSave[] = sync("ant-saves", []);
 
@@ -64,12 +81,12 @@
         const gl2 = canvas!.getContext("webgl2") as WebGL2RenderingContext;
 
         renderer = new Renderer(gl2);
-        Game.clear();
+        clear();
 
-        Game.addTile(renderer, [0, 0, 0], ["turn right"]);
-        Game.addTile(renderer, [255, 255, 255], ["turn left"]);
+        addTileIDK(renderer, [0, 0, 0], ["turn right"]);
+        addTileIDK(renderer, [255, 255, 255], ["turn left"]);
 
-        Game.board.addAnt(Game.board.width / 2, Game.board.height / 2);
+        game.board.addAnt(game.board.width / 2, game.board.height / 2);
 
         // console.log(tiles, Game.tileTriggers, Game.board.ants);
 
@@ -117,7 +134,7 @@
             onRun: (block) => {
                 const number_tileid = block.getFieldValue("TileID");
                 const statements_name = javascriptGenerator.statementToCode(block, "NAME");
-                return `// On tile ${number_tileid}\nGame.tileTriggers.set(${number_tileid}, (ant) => {\n${statements_name}});\n`;
+                return `// On tile ${number_tileid}\ngame.tileTriggers.set(${number_tileid}, (ant) => {\n${statements_name}});\n`;
             }
         });
 
@@ -154,7 +171,7 @@
             onRun: (block) => {
                 // let number_tileid = block.getFieldValue("TileID");
                 const statements_name = javascriptGenerator.statementToCode(block, "NAME");
-                return `// On iteration\nGame.onEachIteration = (ant) => {\n${statements_name}}\n`;
+                return `// On iteration\ngame.onEachIteration = (ant) => {\n${statements_name}}\n`;
             }
         });
 
@@ -169,7 +186,7 @@
                     javascriptGenerator.valueToCode(block, "X", Order.ADDITION),
                     javascriptGenerator.valueToCode(block, "Y", Order.ADDITION)
                 ];
-                return `Game.board.addAnt(${x}, ${y});\n`;
+                return `game.board.addAnt(${x}, ${y});\n`;
             }
         });
 
@@ -221,8 +238,8 @@
                     document.getElementById("code")!.innerText = code;
                 }
 
-                Game.tileTriggers.clear();
-                Game.restart();
+                game.tileTriggers.clear();
+                restartGame(game);
                 try {
                     // eval for now (its slow)
                     eval(code);
@@ -236,15 +253,15 @@
         window.addEventListener("keydown", (e: KeyboardEvent) => {
             switch (e.code) {
                 case "KeyR":
-                    Game.restart();
+                    restartGame(game);
                     break;
 
                 case "KeyP":
-                    Game.instance.paused = !Game.instance.paused;
+                    game.paused = !game.paused;
                     break;
 
                 case "KeyT":
-                    fps = Game.tick(renderer!, iterate);
+                    game.fps = tick(game, renderer!, iterate);
                     break;
             }
         });
@@ -261,7 +278,7 @@
         }
 
         if (autoSave) {
-            Game.loadSnapshot(autoSave, renderer!, workspace!);
+            loadSnapshot(game, autoSave, renderer!, workspace!);
         }
 
         window.requestAnimationFrame(frame);
@@ -277,7 +294,7 @@
                 .getOne(params)
                 .then((save) => {
                     sharedSave = save.workspace;
-                    Game.loadSnapshot(save.workspace, renderer!, workspace!);
+                    loadSnapshot(game, save.workspace, renderer!, workspace!);
                 })
                 .catch((err) => {
                     console.error(err);
@@ -314,7 +331,7 @@
     }
 
     function addTile() {
-        Game.addTile(renderer!, randomColour(), ["turn left"]);
+        addTileIDK(renderer!, randomColour(), ["turn left"]);
 
         // Check if the block already exists
         const existingBlock = findOnTileBlock(tiles.length - 1);
@@ -338,7 +355,7 @@
         }
 
         workspace!.render();
-        Game.restart();
+        restartGame(game);
     }
 
     function removeTile(tile: Tile) {
@@ -351,12 +368,12 @@
         // Update the tile colours
         updateTileColours();
 
-        Game.restart();
+        restartGame(game);
     }
 
     function frame() {
-        if (!Game.instance.updateInProgress && !Game.instance.paused) {
-            fps = Game.tick(renderer!, iterate);
+        if (!game.updateInProgress && !game.paused) {
+            game.fps = tick(game, renderer!, iterate);
         }
         renderer!.render();
 
@@ -364,14 +381,14 @@
     }
 
     function iterate() {
-        for (const ant of Game.board.ants) {
+        for (const ant of game.board.ants) {
             // Move
-            Game.onEachIteration(ant);
+            game.onEachIteration(ant);
 
-            const cell = Game.board.getCell(ant.position.x, ant.position.y);
+            const cell = game.board.getCell(ant.position.x, ant.position.y);
 
             // Attempt to run the trigger function if exists
-            Game.tileTriggers.get(cell)?.(ant);
+            game.tileTriggers.get(cell)?.(ant);
         }
     }
 
@@ -385,13 +402,53 @@
             autoSave.date = new Date();
             autoSave.blockly = defaultBlockly;
             autoSave.tiles = defaultTiles;
-            Game.loadSnapshot(autoSave, renderer!, workspace!);
+            loadSnapshot(game, autoSave, renderer!, workspace!);
 
             // Reset users' url search params
             const url = new URL(window.location.href);
             url.searchParams.delete("s");
             window.history.replaceState({}, "", url.toString());
         }
+    }
+
+    // Game.svelte.ts stuff
+    function clear() {
+        game.board.clear();
+        tiles.length = 0;
+    }
+
+    function takePhoto(renderer: Renderer, canvas: HTMLCanvasElement) {
+        renderer.render();
+        return canvas.toDataURL();
+    }
+
+    function saveSnapshot(
+        saves: PhotoSave[],
+        renderer: Renderer,
+        workspace: Blockly.WorkspaceSvg,
+        canvas: HTMLCanvasElement
+    ) {
+        const name = prompt("Name your save")?.trim();
+        if (name) {
+            saves.push({
+                name,
+                date: new Date(),
+                blockly: Blockly.serialization.workspaces.save(workspace),
+                tiles: Array.from(tiles),
+                src: takePhoto(renderer, canvas)
+            });
+        }
+    }
+
+    function addTileIDK(renderer: Renderer, color: Tile["colour"], triggers: Tile["triggers"]) {
+        const newTile = {
+            colour: color,
+            triggers: triggers
+        };
+        tiles.push(newTile);
+        renderer.updateColours();
+
+        return newTile;
     }
 
     let headerHeight = $state(0);
@@ -417,16 +474,14 @@
     <span>•</span>
     <Link href="https://discord.gg/YVuuF9KB5j">Discord</Link>
     <span>•</span>
-    <button onclick={() => Game.saveSnapshot(saves, renderer!, workspace!, canvas!)}>Save</button>
+    <button onclick={() => saveSnapshot(saves, renderer!, workspace!, canvas!)}>Save</button>
     <span>•</span>
     <button onclick={() => (showSaves = !showSaves)}>Load</button>
     <span>•</span>
     <button onclick={resetWorkspace}>Reset</button>
-    <span>•</span>
-    <button onclick={resetWorkspace}>Recently Shared</button>
     {#if sharedSave}
         <div class="ml-auto flex items-center gap-3 px-2">
-            <!-- <span>Viewing:</span> -->
+            <span>Viewing:</span>
             <span
                 class="px-1"
                 style="background-color: {getForegroundColour(
@@ -450,13 +505,13 @@
                     class="absolute top-0 left-0 z-[99999] w-full overflow-auto"
                     style="height: {innerHeight.current! - headerHeight - 24}px;"
                 >
-                    <Saves {saves} {renderer} {workspace} {pb} />
+                    <Saves {game} {saves} {renderer} {workspace} {pb} />
                 </div>
             {/if}
         </div>
     </div>
     <div class="flex max-w-1/2 flex-col gap-2" style="width: {width / DPR}px;">
-        <Stats {fps} />
+        <Stats {game} />
         <canvas
             bind:this={canvas}
             style="max-height: {height / DPR}px; max-width: {width / DPR}px;"
@@ -466,6 +521,6 @@
             {height}
         ></canvas>
         <Tiles {addTile} {removeTile} />
-        <Controls {renderer} {iterate} {fps} />
+        <Controls {renderer} {iterate} {game} />
     </div>
 </main>

@@ -1,17 +1,15 @@
 <script lang="ts">
-    import Game from "../ant/Game.svelte";
-
-    const { fps } = $props();
-    let antPural = $derived(Game.board.ants.length > 1 ? "ants" : "ant");
+    const { game } = $props();
+    let antPural = $derived(game.board.ants.length > 1 ? "ants" : "ant");
 </script>
 
 <div class="flex w-full justify-between px-5">
     <p>
-        Each tick takes {fps.toLocaleString(undefined, {
+        Each tick takes {game.fps.toLocaleString(undefined, {
             minimumFractionDigits: 1,
             maximumFractionDigits: 2
         })}ms
     </p>
-    <p>{Game.board.ants.length} {antPural} moving around</p>
-    <p>Iterations: {Game.instance.iterations.toLocaleString()}</p>
+    <p>{game.board.ants.length} {antPural} moving around</p>
+    <p>Iterations: {game.iterations.toLocaleString()}</p>
 </div>

@@ -1,6 +1,7 @@
-import Game from "./Game.svelte";
-
 // import { moveForward_wasm } from "./assembly/wasm/release";
+
+import type Board from "./board";
+import { height, width } from "./stores.svelte";
 
 enum AntRotation {
     North = 0,
@@ -12,9 +13,15 @@ enum AntRotation {
 class Ant {
     position: Point;
     rotation: AntRotation;
+    board: Board;
     // occupying: Tile
 
-    constructor(position: Point = { x: 0, y: 0 }, rotation: AntRotation = AntRotation.North) {
+    constructor(
+        board: Board,
+        position: Point = { x: 0, y: 0 },
+        rotation: AntRotation = AntRotation.North
+    ) {
+        this.board = board;
         this.position = position;
         this.rotation = rotation;
 
@@ -58,15 +65,15 @@ class Ant {
         // 1 @ 799 == 0
         // 2 @ 799 == 1
 
-        if (this.position.x < 0) this.position.x += Game.board.width;
-        if (this.position.x >= Game.board.width) this.position.x -= Game.board.width;
+        if (this.position.x < 0) this.position.x += width;
+        if (this.position.x >= width) this.position.x -= width;
 
-        if (this.position.y < 0) this.position.y += Game.board.width;
-        if (this.position.y >= Game.board.height) this.position.y -= Game.board.width;
+        if (this.position.y < 0) this.position.y += height;
+        if (this.position.y >= height) this.position.y -= height;
     }
 
     incrementCell(by: number = 1) {
-        Game.board.incrementCell(this.position.x, this.position.y, by);
+        this.board.incrementCell(this.position.x, this.position.y, by);
     }
 }
 

@@ -1,16 +1,11 @@
 <script lang="ts">
-    import Game from "../../ant/Game.svelte";
-    import type Renderer from "../../ant/render/webgl2.svelte";
+    import { restartGame, tick } from "../../ant/stores.svelte";
     import Button from "../Button.svelte";
 
-    let {
-        renderer,
-        iterate,
-        fps
-    }: { renderer: Renderer | null; iterate: () => void; fps: number } = $props();
+    let { renderer, iterate, game } = $props();
 
-    let sliderValue = $state(Math.log10(Game.instance.iterationsPerTick));
-    let controlText = $derived(Game.instance.paused ? "Resume" : "Pause");
+    let sliderValue = $state(Math.log10(game.iterationsPerTick));
+    let controlText = $derived(game.paused ? "Resume" : "Pause");
 
     function formatIterations(iterations: number): string {
         return iterations.toLocaleString();
@@ -21,7 +16,7 @@
     }
 
     function oneTick() {
-        fps = Game.tick(renderer!, iterate);
+        game.fps = tick(game, renderer!, iterate);
     }
 </script>
 
@@ -34,25 +29,25 @@
             step=".1"
             bind:value={sliderValue}
             class="w-full"
-            oninput={() => (Game.instance.iterationsPerTick = getsliderValue())}
+            oninput={() => (game.iterationsPerTick = getsliderValue())}
         />
         <div class="text-center">
             {formatIterations(getsliderValue())} <span class="font-serif font-bold">I/t</span>
         </div>
     </div>
     <div class="flex flex-row gap-2">
-        <Button onclick={oneTick}>One Tick (T)</Button>
-        <Button onclick={() => (Game.instance.paused = !Game.instance.paused)}>
+        <Button onclick={() => (game.paused = !game.paused)}>
             {controlText} (P)
         </Button>
         <Button
             onclick={() => {
-                Game.restart();
-                Game.instance.paused = false;
+                restartGame(game);
+                game.paused = false;
             }}
         >
             Restart (R)
         </Button>
+        <Button onclick={oneTick}>One Tick (T)</Button>
     </div>
     <!-- <pre id="code" class="text-xs"></pre> -->
 </div>

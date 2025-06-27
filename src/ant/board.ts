@@ -38,7 +38,7 @@ class Board {
     }
 
     addAnt(x: number, y: number) {
-        this.ants.push(new Ant({ x, y }));
+        this.ants.push(new Ant(this, { x, y }));
     }
 
     output() {
