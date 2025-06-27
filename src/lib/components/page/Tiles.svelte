@@ -1,6 +1,6 @@
 <script lang="ts">
     import TilesTile from "../TilesTile.svelte";
-    import { tiles } from "../../ant/stores.svelte";
+    import { tiles } from "$lib/stores.svelte";
 
     const { addTile, removeTile } = $props();
 </script>

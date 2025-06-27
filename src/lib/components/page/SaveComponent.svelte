@@ -1,7 +1,7 @@
 <script lang="ts">
-    import { loadSnapshot, type PhotoSave, type Save } from "../../ant/stores.svelte";
+    import { loadSnapshot, type PhotoSave, type Save } from "$lib/stores.svelte";
     import { devicePixelRatio } from "svelte/reactivity/window";
-    import { getBackgroundColour, getForegroundColour } from "../../ant/util";
+    import { getBackgroundColour, getForegroundColour } from "$lib/util";
 
     let { game, saves, index, renderer, workspace, pb } = $props();
     const save = $derived(saves[index]);

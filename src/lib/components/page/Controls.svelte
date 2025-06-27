@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { restartGame, tick } from "../../ant/stores.svelte";
+    import { restartGame, tick } from "$lib/stores.svelte";
     import Button from "../Button.svelte";
 
     let { renderer, iterate, game } = $props();

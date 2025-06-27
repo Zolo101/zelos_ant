@@ -2,8 +2,8 @@
     import { onMount } from "svelte";
     import * as Blockly from "blockly";
     import "@blockly/field-colour-hsv-sliders";
-    import Stats from "../component/Stats.svelte";
-    import Controls from "../component/page/Controls.svelte";
+    import Stats from "../lib/components/Stats.svelte";
+    import Controls from "../lib/components/page/Controls.svelte";
     import { javascriptGenerator, Order } from "blockly/javascript";
     import {
         turnJSON,
@@ -16,9 +16,9 @@
         defaultBlockly,
         incrementJSON,
         defaultTiles
-    } from "../ant/blockly";
-    import { addBlockToBlockly } from "../ant/blocklypain";
-    import Renderer from "../ant/render/webgl2.svelte";
+    } from "$lib/blockly";
+    import { addBlockToBlockly } from "$lib/blocklypain";
+    import Renderer from "$lib/render/webgl2.svelte";
     import {
         height,
         loadSnapshot,
@@ -30,20 +30,20 @@
         type PhotoSave,
         type Save,
         type Tile
-    } from "../ant/stores.svelte";
+    } from "$lib/stores.svelte";
     import type { WorkspaceSvg } from "blockly";
-    import Tiles from "../component/page/Tiles.svelte";
-    import Saves from "../component/page/Saves.svelte";
+    import Tiles from "../lib/components/page/Tiles.svelte";
+    import Saves from "../lib/components/page/Saves.svelte";
     import zelosAntLogo from "$lib/assets/zelos_ant.png";
-    import Link from "../component/Link.svelte";
-    import sync from "../ant/sync.svelte";
+    import Link from "../lib/components/Link.svelte";
+    import sync from "$lib/sync.svelte";
     import { devicePixelRatio, innerHeight } from "svelte/reactivity/window";
     import { fade } from "svelte/transition";
-    import { getBackgroundColour, getForegroundColour, hexToRgb, rgbToHex } from "../ant/util";
+    import { getBackgroundColour, getForegroundColour, hexToRgb, rgbToHex } from "$lib/util";
     import { page } from "$app/state";
     import PocketBase from "pocketbase";
-    import Board from "../ant/board";
-    import type Ant from "../ant/ant";
+    import Board from "$lib/board";
+    import type Ant from "$lib/ant";
 
     // TODO: Unfortunately, the only reasonable way to share saves is to use a database...
     const pb = new PocketBase("https://cdn.zelo.dev");
