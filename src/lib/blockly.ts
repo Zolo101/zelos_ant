@@ -1,260 +1,612 @@
-import type { BlocklyOptions } from "blockly/core";
+import type { Block, BlocklyOptions } from "blockly/core";
 import type { Tile } from "./stores.svelte";
+import { javascriptGenerator, Order } from "blockly/javascript";
 
-export const [
-    turnJSON,
-    lookJSON,
-    onJSON,
-    moveJSON,
-    incrementJSON,
-    iterationJSON,
-    iterationOnEveryJSON,
-    createAntJSON,
-    cloneAntJSON
-] = [
-    {
-        type: "turn",
-        message0: "Turn %1",
-        args0: [
-            {
-                type: "field_dropdown",
-                name: "Directions",
-                options: [
-                    ["left", "Left"],
-                    ["right", "Right"],
-                    ["back", "Back"]
-                ]
-            }
-        ],
-        previousStatement: null,
-        nextStatement: null,
-        colour: "#4cbfe6",
-        tooltip: "",
-        helpUrl: ""
-    },
-    {
-        type: "look",
-        message0: "Look %1",
-        args0: [
-            {
-                type: "field_dropdown",
-                name: "Directions",
-                options: [
-                    ["north", "North"],
-                    ["east", "East"],
-                    ["south", "South"],
-                    ["west", "West"]
-                ]
-            }
-        ],
-        previousStatement: null,
-        nextStatement: null,
-        colour: "#4cbfe6",
-        tooltip: "",
-        helpUrl: ""
-    },
-    {
-        kind: "block",
-        type: "on",
-        message0: "On Tile %1 %2 %3 %4",
-        // "inputs": {
-        //     "TileID": {
-        //         "block": {
-        //             "type": "field_number",
-        //             "fields": {
-        //                 "NUM": 0
-        //             }
-        //         }
-        //     }
-        // },
-        args0: [
-            {
-                type: "field_number",
-                name: "TileID",
-                value: 0,
-                min: 0
-            },
-            {
-                type: "field_colour_hsv_sliders",
-                name: "COLOUR",
-                colour: "#ff0000"
-            },
-            {
-                type: "input_dummy"
-            },
-            {
-                type: "input_statement",
-                name: "NAME"
-            }
-        ],
-        colour: "#ffbf01",
-        tooltip: "",
-        helpUrl: ""
-    },
-    {
-        type: "move",
-        message0: "Move forward by %1",
-        args0: [
-            {
-                type: "input_value",
-                name: "NAME",
-                check: "Number"
-            }
-        ],
-        previousStatement: null,
-        nextStatement: null,
-        colour: "#4c97ff",
-        tooltip: "",
-        helpUrl: ""
-    },
-    {
-        type: "increment",
-        message0: "Increment cell by %1",
-        args0: [
-            {
-                type: "input_value",
-                name: "NAME",
-                check: "Number"
-            }
-        ],
-        previousStatement: null,
-        nextStatement: null,
-        colour: "#4c97ff",
-        tooltip: "",
-        helpUrl: ""
-    },
-    {
-        type: "iteration",
-        message0: "On each iteration %1 %2",
-        args0: [
-            {
-                type: "input_dummy"
-            },
-            {
-                type: "input_statement",
-                name: "NAME"
-            }
-        ],
-        colour: "#ffbf01",
-        tooltip: "",
-        helpUrl: ""
-    },
-    {
-        type: "iteration_onevery",
-        message0: "On every %1 th iteration %2 %3",
-        args0: [
-            {
-                type: "field_number",
-                name: "NAME",
-                value: 0,
-                min: 1
-            },
-            {
-                type: "input_dummy"
-            },
-            {
-                type: "input_statement",
-                name: "NAME"
-            }
-        ],
-        colour: "#ffbf01",
-        tooltip: "",
-        helpUrl: ""
-    },
-    {
-        type: "create_ant",
-        message0: "Create ant at X %1 Y %2",
-        args0: [
-            {
-                type: "input_value",
-                name: "X",
-                check: "Number",
-                shadow: {
-                    type: "X",
-                    fields: {
-                        NUM: 1
-                    }
+type RawBlock = {
+    json: Record<string, unknown>; // TODO: Make explict type
+    tooltip: (block: Block) => string;
+    onRun: (block: Block) => string | [string, Order];
+};
+
+export const blocks = {
+    turn: {
+        json: {
+            message0: "Turn %1",
+            args0: [
+                {
+                    type: "field_dropdown",
+                    name: "Directions",
+                    options: [
+                        ["left", "Left"],
+                        ["right", "Right"],
+                        ["back", "Back"]
+                    ]
                 }
-            },
-            {
-                type: "input_value",
-                name: "Y",
-                check: "Number",
-                shadow: {
-                    type: "Y",
-                    fields: {
-                        NUM: 1
-                    }
-                }
-            }
-        ],
-        inputsInline: true,
-        previousStatement: null,
-        nextStatement: null,
-        colour: "#ff6680",
-        tooltip: "",
-        helpUrl: ""
+            ],
+            previousStatement: null,
+            nextStatement: null,
+            colour: "#4cbfe6",
+            tooltip: "",
+            helpUrl: ""
+        },
+        tooltip: (block) => {
+            return `Turns the ant in the ${block.getFieldValue("Directions")} direction.`;
+        },
+        onRun: (block) => {
+            const dropdown_directions = block.getFieldValue("Directions");
+            return `ant.turn${dropdown_directions}();\n`;
+        }
     },
-    {
-        type: "create_ant_on_ant",
-        message0: "Clone ant",
-        previousStatement: null,
-        nextStatement: null,
-        colour: 90,
-        tooltip: "",
-        helpUrl: ""
+    look: {
+        json: {
+            message0: "Look %1",
+            args0: [
+                {
+                    type: "field_dropdown",
+                    name: "Directions",
+                    options: [
+                        ["north", "North"],
+                        ["east", "East"],
+                        ["south", "South"],
+                        ["west", "West"]
+                    ]
+                }
+            ],
+            previousStatement: null,
+            nextStatement: null,
+            colour: "#4cbfe6",
+            tooltip: "",
+            helpUrl: ""
+        },
+        tooltip: (block) => {
+            return `Makes the ant look ${block.getFieldValue("Directions")}.`;
+        },
+        onRun: (block) => {
+            const dropdown_directions = block.getFieldValue("Directions");
+            switch (dropdown_directions) {
+                case "North":
+                    return `ant.rotation = 0;\n`;
+                case "East":
+                    return `ant.rotation = 1;\n`;
+                case "South":
+                    return `ant.rotation = 2;\n`;
+                case "West":
+                    return `ant.rotation = 3;\n`;
+                default:
+                    return "";
+            }
+        }
+    },
+    on: {
+        json: {
+            kind: "block",
+            type: "on",
+            message0: "On Tile %1 %2 %3 %4",
+            args0: [
+                {
+                    type: "field_number",
+                    name: "TileID",
+                    value: 0,
+                    min: 0
+                },
+                {
+                    type: "field_colour_hsv_sliders",
+                    name: "COLOUR",
+                    colour: "#ff0000"
+                },
+                {
+                    type: "input_dummy"
+                },
+                {
+                    type: "input_statement",
+                    name: "NAME"
+                }
+            ],
+            colour: "#ffbf01",
+            tooltip: "",
+            helpUrl: ""
+        },
+        tooltip: (block) => {
+            return `Triggers when an ant steps on tile ${block.getFieldValue("TileID")}.`;
+        },
+        onRun: (block) => {
+            // TODO: Why not make this dynamic (e.g. stuff like "x % 2" instead of just constants)
+            const number_tileid = block.getFieldValue("TileID");
+            const statements_name = javascriptGenerator.statementToCode(block, "NAME");
+            return `// On tile ${number_tileid}\ngame.tileTriggers.set(${number_tileid}, (ant) => {\n${statements_name}});\n`;
+        }
+    },
+    move: {
+        json: {
+            type: "move",
+            message0: "Move forward by %1",
+            args0: [
+                {
+                    type: "input_value",
+                    name: "NAME",
+                    check: "Number"
+                }
+            ],
+            previousStatement: null,
+            nextStatement: null,
+            colour: "#4c97ff",
+            tooltip: "",
+            helpUrl: ""
+        },
+        tooltip: (block) => {
+            return `Moves the ant forward by ${block.getFieldValue("NAME")}.`;
+        },
+        onRun: (block: Block) => {
+            const amount = javascriptGenerator.valueToCode(block, "NAME", Order.NONE);
+            return `ant.moveForward(${amount});\n`;
+        }
+    },
+    increment: {
+        json: {
+            type: "increment",
+            message0: "Increment cell by %1",
+            args0: [
+                {
+                    type: "input_value",
+                    name: "NAME",
+                    check: "Number"
+                }
+            ],
+            previousStatement: null,
+            nextStatement: null,
+            colour: "#4c97ff",
+            tooltip: "",
+            helpUrl: ""
+        },
+        tooltip: (block) => {
+            return `Increments the current cell by ${block.getFieldValue("NAME")}.`;
+        },
+        onRun: (block) => {
+            const amount = javascriptGenerator.valueToCode(block, "NAME", Order.NONE);
+            return `game.board.incrementCell(ant, ${amount});\n`;
+        }
+    },
+    set: {
+        json: {
+            type: "set",
+            message0: "Set cell to tile %1",
+            args0: [
+                {
+                    type: "input_value",
+                    name: "NAME",
+                    check: "Number"
+                }
+            ],
+            previousStatement: null,
+            nextStatement: null,
+            colour: "#4c97ff",
+            tooltip: "",
+            helpUrl: ""
+        },
+        tooltip: (block) => {
+            return `Sets the current cell to tile ${block.getFieldValue("NAME")}.`;
+        },
+        onRun: (block: Block) => {
+            const amount = javascriptGenerator.valueToCode(block, "NAME", Order.ADDITION);
+            return `game.board.setCell(ant.position.x, ant.position.y, ${amount})\n`;
+        }
+    },
+    start: {
+        json: {
+            type: "start",
+            message0: "On start %1 %2",
+            args0: [
+                {
+                    type: "input_dummy"
+                },
+                {
+                    type: "input_statement",
+                    name: "NAME"
+                }
+            ],
+            colour: "#ffbf01",
+            tooltip: "",
+            helpUrl: ""
+        },
+        tooltip: () => {
+            return `Triggers on restart.`;
+        },
+        onRun: (block) => {
+            // let number_tileid = block.getFieldValue("TileID");
+            const statements_name = javascriptGenerator.statementToCode(block, "NAME");
+            return `// On start\ngame.onStart = (ant) => {\n${statements_name}}\n`;
+        }
+    },
+    iteration: {
+        json: {
+            type: "iteration",
+            message0: "On each iteration %1 %2",
+            args0: [
+                {
+                    type: "input_dummy"
+                },
+                {
+                    type: "input_statement",
+                    name: "NAME"
+                }
+            ],
+            colour: "#ffbf01",
+            tooltip: "",
+            helpUrl: ""
+        },
+        tooltip: () => {
+            return `Triggers on each iteration.`;
+        },
+        onRun: (block) => {
+            // let number_tileid = block.getFieldValue("TileID");
+
+            const statements_name = javascriptGenerator.statementToCode(block, "NAME");
+
+            return `// On iteration\ngame.onEachIteration = (ant) => {\n${statements_name}}\n`;
+        }
+    },
+    tile: {
+        json: {
+            type: "tile",
+            tooltip: "",
+            helpUrl: "",
+            message0: "tile number %1",
+            args0: [
+                {
+                    type: "input_dummy",
+                    name: "NAME"
+                }
+            ],
+            output: "Number",
+            colour: "#35c700"
+        },
+        tooltip: () => {
+            return `The tile number the ant is on.`;
+        },
+        onRun: () => {
+            return [`game.board.getCell(ant.position.x, ant.position.y)`, Order.FUNCTION_CALL];
+        }
+    },
+    iterations: {
+        json: {
+            type: "iterations",
+            tooltip: "",
+            helpUrl: "",
+            message0: "iterations %1",
+            args0: [
+                {
+                    type: "input_dummy",
+                    name: "NAME"
+                }
+            ],
+            output: "Number",
+            colour: "#35c700"
+        },
+        tooltip: () => {
+            return `The number of iterations computed.`;
+        },
+        onRun: () => {
+            return [`game.getState().iterations`, Order.FUNCTION_CALL];
+        }
     }
-];
+} as Record<string, RawBlock>;
+
+// export const [
+// turnJSON,
+// lookJSON,
+// onJSON,
+// moveJSON,
+// incrementJSON,
+// setJSON,
+// iterationJSON,
+// startJSON,
+// iterationOnEveryJSON,
+// createAntJSON,
+// cloneAntJSON,
+// dieJSON
+// ] = [
+// {
+//     type: "turn",
+//     message0: "Turn %1",
+//     args0: [
+//         {
+//             type: "field_dropdown",
+//             name: "Directions",
+//             options: [
+//                 ["left", "Left"],
+//                 ["right", "Right"],
+//                 ["back", "Back"]
+//             ]
+//         }
+//     ],
+//     previousStatement: null,
+//     nextStatement: null,
+//     colour: "#4cbfe6",
+//     tooltip: "",
+//     helpUrl: ""
+// },
+// {
+//     type: "look",
+//     message0: "Look %1",
+//     args0: [
+//         {
+//             type: "field_dropdown",
+//             name: "Directions",
+//             options: [
+//                 ["north", "North"],
+//                 ["east", "East"],
+//                 ["south", "South"],
+//                 ["west", "West"]
+//             ]
+//         }
+//     ],
+//     previousStatement: null,
+//     nextStatement: null,
+//     colour: "#4cbfe6",
+//     tooltip: "",
+//     helpUrl: ""
+// },
+// {
+//     kind: "block",
+//     type: "on",
+//     message0: "On Tile %1 %2 %3 %4",
+//     // "inputs": {
+//     //     "TileID": {
+//     //         "block": {
+//     //             "type": "field_number",
+//     //             "fields": {
+//     //                 "NUM": 0
+//     //             }
+//     //         }
+//     //     }
+//     // },
+//     args0: [
+//         {
+//             type: "field_number",
+//             name: "TileID",
+//             value: 0,
+//             min: 0
+//         },
+//         {
+//             type: "field_colour_hsv_sliders",
+//             name: "COLOUR",
+//             colour: "#ff0000"
+//         },
+//         {
+//             type: "input_dummy"
+//         },
+//         {
+//             type: "input_statement",
+//             name: "NAME"
+//         }
+//     ],
+//     colour: "#ffbf01",
+//     tooltip: "",
+//     helpUrl: ""
+// },
+// {
+//     type: "move",
+//     message0: "Move forward by %1",
+//     args0: [
+//         {
+//             type: "input_value",
+//             name: "NAME",
+//             check: "Number"
+//         }
+//     ],
+//     previousStatement: null,
+//     nextStatement: null,
+//     colour: "#4c97ff",
+//     tooltip: "",
+//     helpUrl: ""
+// },
+// {
+//     type: "increment",
+//     message0: "Increment cell by %1",
+//     args0: [
+//         {
+//             type: "input_value",
+//             name: "NAME",
+//             check: "Number"
+//         }
+//     ],
+//     previousStatement: null,
+//     nextStatement: null,
+//     colour: "#4c97ff",
+//     tooltip: "",
+//     helpUrl: ""
+// },
+// {
+//     type: "set",
+//     message0: "Set cell to tile %1",
+//     args0: [
+//         {
+//             type: "input_value",
+//             name: "NAME",
+//             check: "Number"
+//         }
+//     ],
+//     previousStatement: null,
+//     nextStatement: null,
+//     colour: "#4c97ff",
+//     tooltip: "",
+//     helpUrl: ""
+// },
+// {
+//     type: "iteration",
+//     message0: "On each iteration %1 %2",
+//     args0: [
+//         {
+//             type: "input_dummy"
+//         },
+//         {
+//             type: "input_statement",
+//             name: "NAME"
+//         }
+//     ],
+//     colour: "#ffbf01",
+//     tooltip: "",
+//     helpUrl: ""
+// },
+// {
+//     type: "start",
+//     message0: "On start %1 %2",
+//     args0: [
+//         {
+//             type: "input_dummy"
+//         },
+//         {
+//             type: "input_statement",
+//             name: "NAME"
+//         }
+//     ],
+//     colour: "#ffbf01",
+//     tooltip: "",
+//     helpUrl: ""
+// },
+// {
+//     type: "iteration_onevery",
+//     message0: "On every %1 th iteration %2 %3",
+//     args0: [
+//         {
+//             type: "field_number",
+//             name: "NAME",
+//             value: 0,
+//             min: 1
+//         },
+//         {
+//             type: "input_dummy"
+//         },
+//         {
+//             type: "input_statement",
+//             name: "NAME"
+//         }
+//     ],
+//     colour: "#ffbf01",
+//     tooltip: "",
+//     helpUrl: ""
+// },
+// {
+//     type: "create_ant",
+//     message0: "Create ant at X %1 Y %2",
+//     args0: [
+//         {
+//             type: "input_value",
+//             name: "X",
+//             check: "Number",
+//             shadow: {
+//                 type: "X",
+//                 fields: {
+//                     NUM: 1
+//                 }
+//             }
+//         },
+//         {
+//             type: "input_value",
+//             name: "Y",
+//             check: "Number",
+//             shadow: {
+//                 type: "Y",
+//                 fields: {
+//                     NUM: 1
+//                 }
+//             }
+//         }
+//     ],
+//     inputsInline: true,
+//     previousStatement: null,
+//     nextStatement: null,
+//     colour: "#ff6680",
+//     tooltip: "",
+//     helpUrl: ""
+// },
+// {
+//     type: "clone_ant",
+//     message0: "Clone ant",
+//     previousStatement: null,
+//     nextStatement: null,
+//     colour: "#0ed985",
+//     tooltip: "",
+//     helpUrl: ""
+// },
+// {
+//     type: "die",
+//     message0: "Die",
+//     previousStatement: null,
+//     nextStatement: null,
+//     colour: "#0ed985",
+//     tooltip: "",
+//     helpUrl: ""
+// }
+// ];
 
 export const toolbox = {
     contents: [
         {
             kind: "CATEGORY",
             contents: [
-                {
-                    kind: "block",
-                    type: "turn"
-                },
-                {
-                    kind: "block",
-                    type: "look"
-                },
-                {
-                    kind: "block",
-                    type: "move",
-                    inputs: {
-                        NAME: {
-                            shadow: {
-                                type: "math_number",
-                                fields: {
-                                    NUM: 1
-                                }
-                            }
-                        }
-                    }
-                },
-                {
-                    kind: "block",
-                    type: "increment",
-                    inputs: {
-                        NAME: {
-                            shadow: {
-                                type: "math_number",
-                                fields: {
-                                    NUM: 1
-                                }
-                            }
-                        }
-                    }
-                },
-                {
-                    kind: "block",
-                    type: "on"
-                },
-                {
-                    kind: "block",
-                    type: "iteration"
-                }
+                // {
+                //     kind: "block",
+                //     type: "turn"
+                // },
+                // {
+                //     kind: "block",
+                //     type: "look"
+                // },
+                // {
+                //     kind: "block",
+                //     type: "move",
+                //     inputs: {
+                //         NAME: {
+                //             shadow: {
+                //                 type: "math_number",
+                //                 fields: {
+                //                     NUM: 1
+                //                 }
+                //             }
+                //         }
+                //     }
+                // },
+                // {
+                //     kind: "block",
+                //     type: "increment",
+                //     inputs: {
+                //         NAME: {
+                //             shadow: {
+                //                 type: "math_number",
+                //                 fields: {
+                //                     NUM: 1
+                //                 }
+                //             }
+                //         }
+                //     }
+                // },
+                // {
+                //     kind: "block",
+                //     type: "set",
+                //     inputs: {
+                //         NAME: {
+                //             shadow: {
+                //                 type: "math_number",
+                //                 fields: {
+                //                     NUM: 1
+                //                 }
+                //             }
+                //         }
+                //     }
+                // },
+                // {
+                //     kind: "block",
+                //     type: "on"
+                // },
+                // {
+                //     kind: "block",
+                //     type: "start"
+                // },
+                // {
+                //     kind: "block",
+                //     type: "iteration"
+                // },
                 // {
                 //     "kind": "block",
                 //     "type": "iteration_onevery"
@@ -283,9 +635,13 @@ export const toolbox = {
                 //     }
                 // }
                 // {
-                //     "kind": "block",
-                //     "type": "create_ant_on_ant"
+                //     kind: "block",
+                //     type: "clone_ant"
                 // },
+                // {
+                //     kind: "block",
+                //     type: "die"
+                // }
             ],
             id: "catZA",
             colour: "#981d98",
@@ -653,85 +1009,99 @@ export const toolbox = {
     id: "toolbox",
     style: "display: none"
 };
-export const toolbox2 = {
-    kind: "flyoutToolbox",
-    contents: [
-        {
-            kind: "block",
-            type: "turn"
-        },
-        {
-            kind: "block",
-            type: "look"
-        },
-        {
-            kind: "block",
-            type: "move",
-            inputs: {
-                NAME: {
-                    shadow: {
-                        type: "math_number",
-                        fields: {
-                            NUM: 1
-                        }
-                    }
-                }
-            }
-        },
-        {
-            kind: "block",
-            type: "increment",
-            inputs: {
-                NAME: {
-                    shadow: {
-                        type: "math_number",
-                        fields: {
-                            NUM: 1
-                        }
-                    }
-                }
-            }
-        },
-        {
-            kind: "block",
-            type: "on"
-        },
-        {
-            kind: "block",
-            type: "iteration"
-        },
-        // {
-        //     "kind": "block",
-        //     "type": "iteration_onevery"
-        // },
-        {
-            kind: "block",
-            type: "create_ant",
-            inputs: {
-                X: {
-                    shadow: {
-                        type: "math_number",
-                        fields: {
-                            NUM: 1
-                        }
-                    }
-                },
-                Y: {
-                    shadow: {
-                        type: "math_number",
-                        fields: {
-                            NUM: 1
-                        }
-                    }
-                }
-            }
-        }
-        // {
-        //     "kind": "block",
-        //     "type": "create_ant_on_ant"
-        // },
-    ]
-};
+// export const toolbox2 = {
+//     kind: "flyoutToolbox",
+//     contents: [
+//         {
+//             kind: "block",
+//             type: "turn"
+//         },
+//         {
+//             kind: "block",
+//             type: "look"
+//         },
+//         {
+//             kind: "block",
+//             type: "move",
+//             inputs: {
+//                 NAME: {
+//                     shadow: {
+//                         type: "math_number",
+//                         fields: {
+//                             NUM: 1
+//                         }
+//                     }
+//                 }
+//             }
+//         },
+//         {
+//             kind: "block",
+//             type: "increment",
+//             inputs: {
+//                 NAME: {
+//                     shadow: {
+//                         type: "math_number",
+//                         fields: {
+//                             NUM: 1
+//                         }
+//                     }
+//                 }
+//             }
+//         },
+//         {
+//             kind: "block",
+//             type: "on"
+//         },
+//         {
+//             kind: "block",
+//             type: "set",
+//             inputs: {
+//                 NAME: {
+//                     shadow: {
+//                         type: "math_number",
+//                         fields: {
+//                             NUM: 1
+//                         }
+//                     }
+//                 }
+//             }
+//         },
+//         {
+//             kind: "block",
+//             type: "iteration"
+//         }
+//         // {
+//         //     "kind": "block",
+//         //     "type": "iteration_onevery"
+//         // },
+//         // {
+//         //     kind: "block",
+//         //     type: "create_ant",
+//         //     inputs: {
+//         //         X: {
+//         //             shadow: {
+//         //                 type: "math_number",
+//         //                 fields: {
+//         //                     NUM: 1
+//         //                 }
+//         //             }
+//         //         },
+//         //         Y: {
+//         //             shadow: {
+//         //                 type: "math_number",
+//         //                 fields: {
+//         //                     NUM: 1
+//         //                 }
+//         //             }
+//         //         }
+//         //     }
+//         // }
+//         // {
+//         //     "kind": "block",
+//         //     "type": "create_ant_on_ant"
+//         // },
+//     ]
+// };
 
 export const defaultBlockly = {
     blocks: {
@@ -854,6 +1224,10 @@ export const injectOptions: BlocklyOptions = {
         controls: true,
         wheel: true
     },
-
-    toolbox: toolbox
+    toolbox
+    // plugins: {
+    //     flyoutsVerticalToolbox: "ContinuousFlyout",
+    //     metricsManager: "ContinuousMetrics",
+    //     toolbox: "ContinuousToolbox"
+    // }
 };

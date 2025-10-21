@@ -1,21 +1,25 @@
 <script lang="ts">
-    import { onMount } from "svelte";
+    import { onMount, setContext } from "svelte";
     import * as Blockly from "blockly";
     import "@blockly/field-colour-hsv-sliders";
-    import Stats from "../lib/components/Stats.svelte";
     import Controls from "../lib/components/page/Controls.svelte";
     import { javascriptGenerator, Order } from "blockly/javascript";
     import {
-        turnJSON,
-        lookJSON,
-        onJSON,
-        moveJSON,
-        iterationJSON,
-        createAntJSON,
+        // turnJSON,
+        // lookJSON,
+        // onJSON,
+        // moveJSON,
+        // iterationJSON,
         injectOptions,
         defaultBlockly,
-        incrementJSON,
-        defaultTiles
+        // incrementJSON,
+        defaultTiles,
+        // dieJSON,
+        // cloneAntJSON,
+        // setJSON,
+        // startJSON,
+        blocks,
+        toolbox
     } from "$lib/blockly";
     import { addBlockToBlockly } from "$lib/blocklypain";
     import Renderer from "$lib/render/webgl2.svelte";
@@ -27,6 +31,7 @@
         tiles,
         width,
         type Game,
+        type GameState,
         type PhotoSave,
         type Save,
         type Tile
@@ -42,28 +47,39 @@
     import { getBackgroundColour, getForegroundColour, hexToRgb, rgbToHex } from "$lib/util";
     import { page } from "$app/state";
     import Board from "$lib/board";
-    import type Ant from "$lib/ant";
+    import Ant from "$lib/ant";
+    import { SvelteSet } from "svelte/reactivity";
+    import { replaceState } from "$app/navigation";
+    import Button from "$lib/components/Button.svelte";
+    import { dev } from "$app/environment";
+    import type { Attachment } from "svelte/attachments";
+    // Currently broken
+    // import { registerContinuousToolbox } from "@blockly/continuous-toolbox";
 
-    let canvas: HTMLCanvasElement | null = $state(null);
     let workspace: WorkspaceSvg | null = $state(null);
     let renderer: Renderer | null = $state(null);
     let DPR = $state(devicePixelRatio.current ?? 1);
     let showSaves = $state(false);
+    let antLimit = 2 ** 14; // 16k
 
-    let game: Game = $state({
+    const game: Game = {
         board: new Board(width, height),
-        tileTriggers: new Map<number, (ant: Ant) => void>(),
+        ants: new SvelteSet(),
+        tileTriggers: new Map(),
+        onStart: () => {},
         onEachIteration: () => {},
-        alertText: "",
-        oldTiles: [],
+        getState: () => gameState
+    };
+
+    let gameState: GameState = $state({
         updateInProgress: false,
         paused: false,
         fps: 0,
         iterations: 0,
-        iterationsPerTick: 100
+        iterationsPerTick: 1
     });
 
-    let saves: PhotoSave[] = sync("ant-saves", []);
+    let saves: Readonly<PhotoSave>[] = sync("ant-saves", []);
 
     // TODO: Make a default save generator so we don't have to hardcode this
     let autoSave: Save = sync("current-save", {
@@ -74,121 +90,104 @@
     });
     let sharedSave: Save | null = $state(null);
 
-    onMount(async () => {
-        const gl2 = canvas!.getContext("webgl2") as WebGL2RenderingContext;
+    function addAnt(x: number, y: number) {
+        game.ants.add(new Ant({ x, y }));
+    }
 
-        renderer = new Renderer(gl2);
-        clear();
+    function cloneAnt(ant: Ant) {
+        if (game.ants.size < antLimit) {
+            // 65k limit
+            // TODO: Make this a setting
+            game.ants.add(new Ant({ x: ant.position.x, y: ant.position.y }));
+        }
+    }
 
-        addTileIDK(renderer, [0, 0, 0], ["turn right"]);
-        addTileIDK(renderer, [255, 255, 255], ["turn left"]);
+    // function killAnt(ant: Ant) {
+    //     game.ants.delete(ant);
+    // }
 
-        game.board.addAnt(game.board.width / 2, game.board.height / 2);
+    // Uncaught Svelte error: missing_context
+    // Context was not set in a parent component
+    // https://svelte.dev/e/missing_context
+    // (personally I think this is a bug in svelte)
+    // setWorkspace(null);
+    // setRenderer(null);
 
-        // console.log(tiles, Game.tileTriggers, Game.board.ants);
+    function resetWorkspace() {
+        if (
+            confirm(
+                "Are you sure you want to reset? This will remove all modified blocks and tiles."
+            )
+        ) {
+            // Reset the auto save (or current save)
+            autoSave.date = new Date();
+            autoSave.blockly = defaultBlockly;
+            autoSave.tiles = defaultTiles;
+            loadSnapshot(game, gameState, autoSave, renderer!, workspace!);
 
-        addBlockToBlockly({
-            name: "turn",
-            json: turnJSON,
-            tooltip: (block) => {
-                return `Turns the ant in the ${block.getFieldValue("Directions")} direction.`;
-            },
-            onRun: (block) => {
-                const dropdown_directions = block.getFieldValue("Directions");
-                return `ant.turn${dropdown_directions}();\n`;
-            }
-        });
+            // Reset users' url search params
+            const url = new URL(window.location.href);
+            url.searchParams.delete("s");
+            sharedSave = null;
+            replaceState(url.toString(), {});
+        }
+    }
 
-        addBlockToBlockly({
-            name: "look",
-            json: lookJSON,
-            tooltip: (block) => {
-                return `Makes the ant look ${block.getFieldValue("Directions")}.`;
-            },
-            onRun: (block) => {
-                const dropdown_directions = block.getFieldValue("Directions");
-                switch (dropdown_directions) {
-                    case "North":
-                        return `ant.rotation = 0;\n`;
-                    case "East":
-                        return `ant.rotation = 1;\n`;
-                    case "South":
-                        return `ant.rotation = 2;\n`;
-                    case "West":
-                        return `ant.rotation = 3;\n`;
-                    default:
-                        return "";
+    // onMount(async () => {
+    const blocklyContainer: Attachment = (container) => {
+        if (workspace) return;
+
+        // Build RawBlock -> Blockly.Block
+        for (const [type, block] of Object.entries(blocks)) {
+            const { json, tooltip, onRun } = block;
+            let b = block;
+            b.json.type = type;
+
+            let args = block.json.args0 as any[];
+            let inputs: Record<string, unknown> = {};
+
+            const toolboxItem = {
+                kind: "BLOCK",
+                type,
+                blockxml: ""
+            };
+
+            if (args) {
+                for (const arg of args) {
+                    const { name, check, shadow } = arg;
+                    let type = "math_number";
+
+                    if (name) {
+                        inputs[name] = {
+                            shadow: {
+                                type, // TODO: Use check for this
+                                fields: {
+                                    NUM: 1
+                                }
+                                // fields: shadow?.fields
+                            }
+                        };
+                    }
                 }
-            }
-        });
 
-        addBlockToBlockly({
-            name: "on",
-            json: onJSON,
-            tooltip: (block) => {
-                return `Triggers when an ant steps on tile ${block.getFieldValue("TileID")}.`;
-            },
-            onRun: (block) => {
-                const number_tileid = block.getFieldValue("TileID");
-                const statements_name = javascriptGenerator.statementToCode(block, "NAME");
-                return `// On tile ${number_tileid}\ngame.tileTriggers.set(${number_tileid}, (ant) => {\n${statements_name}});\n`;
+                // toolboxItem["inputs"] = inputs;
+                console.log(toolboxItem);
             }
-        });
 
-        addBlockToBlockly({
-            name: "move",
-            json: moveJSON,
-            tooltip: (block) => {
-                return `Moves the ant forward by ${block.getFieldValue("NAME")}.`;
-            },
-            onRun: (block: Blockly.Block) => {
-                const amount = javascriptGenerator.valueToCode(block, "NAME", Order.ADDITION);
-                return `ant.moveForward(${amount});\n`;
-            }
-        });
+            toolbox.contents[0].contents?.push(toolboxItem);
 
-        addBlockToBlockly({
-            name: "increment",
-            json: incrementJSON,
-            tooltip: (block) => {
-                return `Increments the current cell by ${block.getFieldValue("NAME")}.`;
-            },
-            onRun: (block: Blockly.Block) => {
-                const amount = javascriptGenerator.valueToCode(block, "NAME", Order.ADDITION);
-                return `ant.incrementCell(${amount});\n`;
-            }
-        });
+            addBlockToBlockly({
+                name: type,
+                json,
+                tooltip,
+                onRun
+            });
+        }
 
-        addBlockToBlockly({
-            name: "iteration",
-            json: iterationJSON,
-            tooltip: () => {
-                return `Triggers on each iteration.`;
-            },
-            onRun: (block) => {
-                // let number_tileid = block.getFieldValue("TileID");
-                const statements_name = javascriptGenerator.statementToCode(block, "NAME");
-                return `// On iteration\ngame.onEachIteration = (ant) => {\n${statements_name}}\n`;
-            }
-        });
+        console.log(toolbox);
 
-        addBlockToBlockly({
-            name: "create_ant",
-            json: createAntJSON,
-            tooltip: (block) => {
-                return `Creates an ant in the location (${block.getFieldValue("X")}, ${block.getFieldValue("Y")})`;
-            },
-            onRun: (block) => {
-                const [x, y] = [
-                    javascriptGenerator.valueToCode(block, "X", Order.ADDITION),
-                    javascriptGenerator.valueToCode(block, "Y", Order.ADDITION)
-                ];
-                return `game.board.addAnt(${x}, ${y});\n`;
-            }
-        });
-
+        // registerContinuousToolbox();
         workspace = Blockly.inject("blockly", injectOptions);
-
         workspace.addChangeListener(Blockly.Events.disableOrphans);
 
         let code = "";
@@ -214,6 +213,7 @@
                         // console.log(tileId, newValue);
 
                         tiles[tileId].colour = hexToRgb(newValue as string)!;
+                        renderer?.updateColours();
                     }
                 }
 
@@ -228,41 +228,28 @@
                 }
                 code = newCode;
                 updateAutoSave();
-                console.log("reset!");
+                // console.log("reset!");
+                // console.log(code);
 
                 // Debug
                 // TODO: Debug in dev environment?
-                if (document.getElementById("code")) {
-                    document.getElementById("code")!.innerText = code;
+                if (dev) {
+                    if (document.getElementById("code")) {
+                        document.getElementById("code")!.innerText = code;
+                    }
                 }
 
                 game.tileTriggers.clear();
-                restartGame(game);
+                restartGame(game, gameState);
                 try {
-                    // eval for now (its slow)
-                    eval(code);
+                    // a better eval, but still not sandboxed
+                    new Function("game", code)(game);
                 } catch (err) {
                     console.error("eval error", err);
                 }
             }
         });
         Blockly.serialization.workspaces.load(defaultBlockly, workspace);
-
-        window.addEventListener("keydown", (e: KeyboardEvent) => {
-            switch (e.code) {
-                case "KeyR":
-                    restartGame(game);
-                    break;
-
-                case "KeyP":
-                    game.paused = !game.paused;
-                    break;
-
-                case "KeyT":
-                    game.fps = tick(game, renderer!, iterate);
-                    break;
-            }
-        });
 
         function updateAutoSave() {
             autoSave.date = new Date();
@@ -275,9 +262,65 @@
             // console.warn(JSON.stringify(autoSave));
         }
 
-        if (autoSave) {
-            loadSnapshot(game, autoSave, renderer!, workspace!);
-        }
+        // function takePhoto(renderer: Renderer, canvas: HTMLCanvasElement) {
+        //     renderer.render();
+        //     return canvas.toDataURL();
+        // }
+
+        // function saveSnapshot(
+        //     saves: PhotoSave[],
+        //     renderer: Renderer,
+        //     workspace: Blockly.WorkspaceSvg,
+        //     canvas: HTMLCanvasElement
+        // ) {
+        //     const name = prompt("Name your save")?.trim();
+        //     if (name) {
+        //         saves.push({
+        //             name,
+        //             date: new Date(),
+        //             blockly: Blockly.serialization.workspaces.save(workspace),
+        //             tiles: Array.from(tiles),
+        //             src: takePhoto(renderer, canvas)
+        //         });
+        //     }
+        // }
+
+        return () => {
+            console.log("Destroying blockly canvas");
+        };
+    };
+
+    const antCanvas: Attachment = (canvas) => {
+        if (renderer) return;
+        const gl2 = (canvas as HTMLCanvasElement).getContext("webgl2", {
+            preserveDrawingBuffer: true
+        }) as WebGL2RenderingContext;
+
+        renderer = new Renderer(gl2);
+
+        restartGame(game, gameState);
+
+        renderer.updateColours();
+
+        addAnt(game.board.width / 2, game.board.height / 2);
+
+        // console.log(tiles, tileTriggers, Game.board.ants);
+
+        window.addEventListener("keydown", (e: KeyboardEvent) => {
+            switch (e.code) {
+                case "KeyR":
+                    restartGame(game, gameState);
+                    break;
+
+                case "KeyP":
+                    gameState.paused = !gameState.paused;
+                    break;
+
+                case "KeyT":
+                    gameState.fps = tick(game, gameState, renderer!, iterate);
+                    break;
+            }
+        });
 
         window.requestAnimationFrame(frame);
 
@@ -287,105 +330,49 @@
 
         // TODO: Unfortunately, the only reasonable way to share saves is to use a database...
         // Load a save from the URL if it exists
-        const params = page.url.searchParams.get("s");
-        if (params) {
-            // Only import pocketbase when needed!
-            // TODO: Lazy class or something?
-            const { default: PocketBase } = await import("pocketbase");
-            new PocketBase("https://cdn.zelo.dev")
-                .collection("ant")
-                .getOne(params)
-                .then((save) => {
-                    sharedSave = save.workspace;
-                    loadSnapshot(game, save.workspace, renderer!, workspace!);
-                })
-                .catch((err) => {
-                    console.error(err);
-                    alert("Failed to load save... Please try again later");
-                });
+        // const params = page.url.searchParams.get("s");
+        // if (params) {
+        //     // Only import pocketbase when needed!
+        //     // TODO: Lazy class or something?
+        //     const { default: PocketBase } = await import("pocketbase");
+        //     new PocketBase("https://cdn.zelo.dev")
+        //         .collection("ant")
+        //         .getOne(params)
+        //         .then((save) => {
+        //             sharedSave = save.workspace;
+        //             loadSnapshot(game, gameState, save.workspace, renderer!, workspace!);
+        //         })
+        //         .catch((err) => {
+        //             console.error(err);
+        //             alert("Failed to load save... Please try again later");
+        //         });
+        // }
+
+        function frame() {
+            if (!gameState.updateInProgress && !gameState.paused) {
+                gameState.fps = tick(game, gameState, renderer!, iterate);
+            }
+            renderer!.render();
+
+            window.requestAnimationFrame(frame);
+        }
+
+        return () => {
+            console.log("Destroying ant canvas");
+        };
+    };
+
+    onMount(() => {
+        tiles.push({ colour: [0, 0, 0], triggers: ["turn right"] });
+        tiles.push({ colour: [255, 255, 255], triggers: ["turn left"] });
+
+        if (autoSave) {
+            loadSnapshot(game, gameState, autoSave, renderer!, workspace!);
         }
     });
 
-    const randomColour = (): Tile["colour"] => [
-        ~~(Math.random() * 255),
-        ~~(Math.random() * 255),
-        ~~(Math.random() * 255)
-    ];
-
-    function findOnTileBlock(index: number) {
-        for (const block of workspace!.getAllBlocks()) {
-            if (block.getFieldValue("TileID") === index) {
-                return block;
-            }
-        }
-        return null;
-    }
-
-    // This is O(n^2). In my tests it only causes noticable lag after 100 tiles.
-    // OFC it can be O(n). If someone complains, I will optimise it.
-    function updateTileColours() {
-        for (let i = 0; i < tiles.length; i++) {
-            const tile = tiles[i];
-            const block = findOnTileBlock(i);
-            if (block) {
-                block.setFieldValue(rgbToHex(...tile.colour), "COLOUR");
-            }
-        }
-    }
-
-    function addTile() {
-        addTileIDK(renderer!, randomColour(), ["turn left"]);
-
-        // Check if the block already exists
-        const existingBlock = findOnTileBlock(tiles.length - 1);
-        const tile = tiles[tiles.length - 1];
-        if (existingBlock) {
-            existingBlock.setFieldValue(rgbToHex(...tile.colour), "COLOUR");
-        } else {
-            const block = workspace!.newBlock("on");
-            block.setFieldValue(tiles.length - 1, "TileID");
-
-            block.setFieldValue(rgbToHex(...tile.colour), "COLOUR");
-            block.initSvg();
-            block.render();
-
-            const turnBlock = workspace!.newBlock("turn");
-            turnBlock.setFieldValue("Left", "Directions");
-            turnBlock.initSvg();
-            turnBlock.render();
-            // console.log(block.getInput("NAME").connection, turnBlock.previousConnection)
-            block.getInput("NAME")!.connection!.connect(turnBlock.previousConnection);
-        }
-
-        workspace!.render();
-        restartGame(game);
-    }
-
-    function removeTile(tile: Tile) {
-        // Must be at least one tile
-        if (tiles.length - 1 === 0) return;
-
-        // Remove the block
-        tiles.splice(tiles.indexOf(tile), 1);
-
-        // Update the tile colours
-        updateTileColours();
-
-        restartGame(game);
-    }
-
-    function frame() {
-        if (!game.updateInProgress && !game.paused) {
-            game.fps = tick(game, renderer!, iterate);
-        }
-        renderer!.render();
-
-        window.requestAnimationFrame(frame);
-    }
-
     function iterate() {
-        for (const ant of game.board.ants) {
-            // Move
+        for (const ant of game.ants) {
             game.onEachIteration(ant);
 
             const cell = game.board.getCell(ant.position.x, ant.position.y);
@@ -395,66 +382,15 @@
         }
     }
 
-    function resetWorkspace() {
-        if (
-            confirm(
-                "Are you sure you want to reset? This will remove all modified blocks and tiles."
-            )
-        ) {
-            // Reset the auto save (or current save)
-            autoSave.date = new Date();
-            autoSave.blockly = defaultBlockly;
-            autoSave.tiles = defaultTiles;
-            loadSnapshot(game, autoSave, renderer!, workspace!);
-
-            // Reset users' url search params
-            const url = new URL(window.location.href);
-            url.searchParams.delete("s");
-            window.history.replaceState({}, "", url.toString());
-        }
-    }
-
-    // Game.svelte.ts stuff
-    function clear() {
-        game.board.clear();
-        tiles.length = 0;
-    }
-
-    function takePhoto(renderer: Renderer, canvas: HTMLCanvasElement) {
-        renderer.render();
-        return canvas.toDataURL();
-    }
-
-    function saveSnapshot(
-        saves: PhotoSave[],
-        renderer: Renderer,
-        workspace: Blockly.WorkspaceSvg,
-        canvas: HTMLCanvasElement
-    ) {
-        const name = prompt("Name your save")?.trim();
-        if (name) {
-            saves.push({
-                name,
-                date: new Date(),
-                blockly: Blockly.serialization.workspaces.save(workspace),
-                tiles: Array.from(tiles),
-                src: takePhoto(renderer, canvas)
-            });
-        }
-    }
-
-    function addTileIDK(renderer: Renderer, color: Tile["colour"], triggers: Tile["triggers"]) {
-        const newTile = {
-            colour: color,
-            triggers: triggers
-        };
-        tiles.push(newTile);
-        renderer.updateColours();
-
-        return newTile;
-    }
-
+    // For blockly positioning
     let headerHeight = $state(0);
+
+    let recording = $state(false);
+
+    // Contains video URL of the recording
+    let video: string | null = $state(null);
+
+    const fps = $derived(1000 / gameState.fps);
 </script>
 
 <svelte:head>
@@ -478,18 +414,37 @@
         class="mt-3 ml-3 hue-rotate-280"
         style="image-rendering: pixelated;"
     />
-    <Link href="https://github.com/Zolo101/zelos_ant">2.0.0</Link>
+    <Link href="https://github.com/Zolo101/zelos_ant">2.0.0 alpha</Link>
     <span>•</span>
     <Link href="https://discord.gg/YVuuF9KB5j">Discord</Link>
     <span>•</span>
-    <button
+    <!-- <button
         data-umami-event="save"
         onclick={() => saveSnapshot(saves, renderer!, workspace!, canvas!)}>Save</button
     >
     <span>•</span>
     <button onclick={() => (showSaves = !showSaves)}>Load</button>
-    <span>•</span>
+    <span>•</span> -->
     <button onclick={resetWorkspace}>Reset</button>
+    <span>•</span>
+    <p class="opacity-75">Saves & Recording is currently disabled</p>
+    <div class="text-md ml-auto flex gap-3 pr-5">
+        <span>
+            {fps > 60 ? ">60fps" : `${fps.toPrecision(2)}fps`}
+        </span>
+        <span>•</span>
+        <span>
+            {game.ants.size.toLocaleString()}
+            {game.ants.size === 1 ? "ant" : "ants"} moving around
+        </span>
+        <span>•</span>
+        <span>Iterations: {gameState.iterations.toLocaleString()}</span>
+    </div>
+
+    {#if gameState.fps > 1000 && gameState.paused}
+        <span>•</span>
+        <span class="text-red-500">Anti-Freeze: Game has auto paused</span>
+    {/if}
     {#if sharedSave}
         <div class="ml-auto flex items-center gap-3 px-2">
             <span>Viewing:</span>
@@ -502,36 +457,50 @@
         </div>
     {/if}
 </header>
-<main class="flex p-3">
+<main class="flex gap-3 p-3">
     <div class="grow">
         <div class="relative h-full w-full">
             <div
-                class="absolute top-0 left-0 w-full"
+                class="w-full"
                 id="blockly"
-                style="height: {innerHeight.current! - headerHeight - 24}px;"
+                style="height: {innerHeight.current! - headerHeight - 115}px;"
+                {@attach blocklyContainer}
             ></div>
+            {#if workspace && renderer}
+                <!-- This prop drilling is unavoidable dont bother -->
+                <Tiles {game} {workspace} {renderer} {gameState} />
+            {/if}
             {#if showSaves}
                 <div
                     transition:fade={{ duration: 100 }}
                     class="absolute top-0 left-0 z-[99999] w-full overflow-auto"
                     style="height: {innerHeight.current! - headerHeight - 24}px;"
                 >
-                    <Saves {game} {saves} {renderer} {workspace} />
+                    <Saves {game} {gameState} {saves} />
                 </div>
             {/if}
         </div>
     </div>
     <div class="flex max-w-1/2 flex-col gap-2" style="width: {width / DPR}px;">
-        <Stats {game} />
         <canvas
-            bind:this={canvas}
             style="max-height: {height / DPR}px; max-width: {width / DPR}px;"
-            class="outline outline-white/10"
+            class="outline transition-colors {[
+                (recording && 'outline-red-500') || 'outline-white/10'
+            ]} {[video && 'hidden']} outline-2"
             id="canvas"
             {width}
             {height}
+            {@attach antCanvas}
         ></canvas>
-        <Tiles {addTile} {removeTile} />
-        <Controls {renderer} {iterate} {game} />
+        {#if video}
+            <!-- <video class="max-w-full" controls>
+                <track kind="captions" />
+                <source src={video} type="video/mp4" />
+            </video> -->
+            <img src={video} alt="Recorded gif" class="max-w-full" />
+        {/if}
+        {#if renderer}
+            <Controls {iterate} {game} {renderer} bind:gameState bind:recording bind:video />
+        {/if}
     </div>
 </main>
