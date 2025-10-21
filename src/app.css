@@ -16,8 +16,8 @@ a {
 
 /* Blockly */
 /* .blocklyToolboxCategoryLabel { */
-    /* color: black; */
-    /* font-weight: bold; */
+/* color: black; */
+/* font-weight: bold; */
 /* } */
 
 .zelos-renderer.zelos-theme .blocklyDropdownText {
@@ -47,8 +47,8 @@ text {
     /* stroke: color-mix(in srgb, black 90%, purple); */
 }
 
-
-.blocklyFlyout, .blocklyToolboxFlyout {
+.blocklyFlyout,
+.blocklyToolboxFlyout {
     backdrop-filter: blur(2px);
 }
 
@@ -68,6 +68,8 @@ text {
 }
 
 .blocklyToolbox {
+    position: fixed;
+    padding-left: 10px;
     backdrop-filter: blur(2px);
     background-color: rgba(0, 0, 0, 0.5);
     font-weight: bold;
@@ -81,7 +83,9 @@ text {
 
 /* Hat blocks for the events */
 .blocklyPath[fill="#ffbf01"] {
-    d: path("m 0,0 c 25,-22 71,-22 96,0 H 139.1624984741211 a 4,4 0 0,1 4,4 v 40  a 4,4 0 0,1 -4,4 H 48   c -2,0 -3,1 -4,2 l -4,4 c -1,1 -2,2 -4,2 h -12 c -2,0 -3,-1 -4,-2 l -4,-4 c -1,-1 -2,-2 -4,-2 H 4 a 4,4 0 0,1 -4,-4 z");
+    d: path(
+        "m 0,0 c 25,-22 71,-22 96,0 H 139.1624984741211 a 4,4 0 0,1 4,4 v 40  a 4,4 0 0,1 -4,4 H 48   c -2,0 -3,1 -4,2 l -4,4 c -1,1 -2,2 -4,2 h -12 c -2,0 -3,-1 -4,-2 l -4,-4 c -1,-1 -2,-2 -4,-2 H 4 a 4,4 0 0,1 -4,-4 z"
+    );
 }
 
 /* Translation so that the children of the hat blocks are in the correct position */
@@ -112,8 +116,8 @@ path[transform="translate(28, 48)"] {
 } */
 
 /* .blocklyBlock[transform^="translate"] { */
-    /* transform: none; */
-    /* transform: translate(16px, 0px); */
+/* transform: none; */
+/* transform: translate(16px, 0px); */
 /* } */
 
 /* .blocklyWorkspace .blocklyBlock path {

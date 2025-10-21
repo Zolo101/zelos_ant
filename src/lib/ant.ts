@@ -1,6 +1,5 @@
 // import { moveForward_wasm } from "./assembly/wasm/release";
 
-import type Board from "./board";
 import { height, width } from "./stores.svelte";
 
 enum AntRotation {
@@ -18,15 +17,9 @@ type Point = {
 class Ant {
     position: Point;
     rotation: AntRotation;
-    board: Board;
     // occupying: Tile
 
-    constructor(
-        board: Board,
-        position: Point = { x: 0, y: 0 },
-        rotation: AntRotation = AntRotation.North
-    ) {
-        this.board = board;
+    constructor(position: Point = { x: 0, y: 0 }, rotation: AntRotation = AntRotation.North) {
         this.position = position;
         this.rotation = rotation;
 
@@ -75,10 +68,6 @@ class Ant {
 
         if (this.position.y < 0) this.position.y += height;
         if (this.position.y >= height) this.position.y -= height;
-    }
-
-    incrementCell(by: number = 1) {
-        this.board.incrementCell(this.position.x, this.position.y, by);
     }
 }
 

@@ -3,11 +3,11 @@
     import { devicePixelRatio } from "svelte/reactivity/window";
     import { getBackgroundColour, getForegroundColour } from "$lib/util";
 
-    let { game, saves, index, renderer, workspace } = $props();
+    let { game, gameState, saves, index, renderer, workspace } = $props();
     const save = $derived(saves[index]);
 
     const loadSave = (save: Save) => {
-        loadSnapshot(game, save, renderer, workspace);
+        loadSnapshot(game, gameState, save, renderer, workspace);
     };
 
     const deleteSave = (index: number) => {
