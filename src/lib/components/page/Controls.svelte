@@ -154,11 +154,11 @@
 
 {#snippet about()}
     <p>They're my ants! Not yours!</p>
-    <Button onclick={() => alert("hey")} hotkey="P">Click me please</Button>
 {/snippet}
 
 {#snippet debug()}
     <pre id="code" class="text-xs"></pre>
+    <!-- <Button onclick={() => alert("hey")} hotkey="P">Click me please</Button> -->
 {/snippet}
 
 <!-- {#snippet tiles()} -->

@@ -95,7 +95,7 @@
 </script>
 
 <section class="relative z-100 rounded bg-purple-950/40 p-2">
-    <p class="text-left text-sm font-medium text-purple-300">Manage Tiles</p>
+    <p class="text-left text-sm font-medium text-purple-300">Manage Tiles (click to remove)</p>
     <div class="my-2 flex flex-row flex-wrap content-start gap-2">
         {#each tiles as tile, index}
             <TilesTile {tile} {index} onclick={() => removeTile(tile)} />

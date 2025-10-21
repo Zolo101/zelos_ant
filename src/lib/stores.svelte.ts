@@ -2,9 +2,9 @@ import type { SvelteSet } from "svelte/reactivity";
 import Ant from "./ant";
 import type Board from "./board";
 import type Renderer from "./render/webgl2.svelte";
-import * as Blockly from "blockly";
 import { FFmpeg } from "@ffmpeg/ffmpeg";
 import { fetchFile } from "@ffmpeg/util";
+import { serialization, type WorkspaceSvg } from "blockly";
 
 export const width = $state(800);
 export const height = $state(800);
@@ -207,7 +207,7 @@ export function loadSnapshot(
     gameState: GameState,
     save: Save,
     renderer: Renderer,
-    workspace: Blockly.WorkspaceSvg
+    workspace: WorkspaceSvg
 ) {
     // clear and import tiles
     tiles.length = 0;
@@ -215,7 +215,7 @@ export function loadSnapshot(
         tiles.push(tile);
     });
 
-    Blockly.serialization.workspaces.load(save.blockly, workspace);
+    serialization.workspaces.load(save.blockly, workspace);
     renderer.updateColours();
     restartGame(game, gameState);
 }

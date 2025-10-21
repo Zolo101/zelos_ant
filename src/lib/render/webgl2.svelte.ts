@@ -1,34 +1,46 @@
-import * as twgl from "twgl.js";
+import {
+    createProgram,
+    createProgramInfoFromProgram,
+    createTexture,
+    drawBufferInfo,
+    m4,
+    primitives,
+    setBuffersAndAttributes,
+    setTextureFromArray,
+    setUniforms,
+    type BufferInfo,
+    type ProgramInfo
+} from "twgl.js";
 import "webgl-lint";
 import vertexShader from "./vertex.glsl?raw";
 import fragmentShader from "./fragment.glsl?raw";
-import { height, tiles, width, type Tile } from "../stores.svelte";
+import { height, tiles, width, type RGB } from "../stores.svelte";
 
-const colours: Tile["colour"][] = $derived(tiles.map((t) => t.colour));
+const colours: RGB[] = $derived(tiles.map((t) => t.colour));
 
 export default class Renderer {
     gl: WebGL2RenderingContext;
-    programInfo: twgl.ProgramInfo;
+    programInfo: ProgramInfo;
     tileTexture: WebGLTexture;
     colours: WebGLTexture;
     tiles: Uint8ClampedArray;
-    bufferInfo: twgl.BufferInfo;
+    bufferInfo: BufferInfo;
 
     constructor(gl: WebGL2RenderingContext) {
         this.gl = gl;
-        const program = twgl.createProgram(gl, [vertexShader, fragmentShader]);
-        this.programInfo = twgl.createProgramInfoFromProgram(gl, program);
+        const program = createProgram(gl, [vertexShader, fragmentShader]);
+        this.programInfo = createProgramInfoFromProgram(gl, program);
         this.tiles = new Uint8ClampedArray(width * height);
-        this.bufferInfo = twgl.primitives.createXYQuadBufferInfo(gl);
+        this.bufferInfo = primitives.createXYQuadBufferInfo(gl);
 
-        this.tileTexture = twgl.createTexture(gl, {
+        this.tileTexture = createTexture(gl, {
             mag: gl.NEAREST,
             min: gl.NEAREST,
             internalFormat: gl.R8,
             src: this.tiles
         });
 
-        this.colours = twgl.createTexture(gl, {
+        this.colours = createTexture(gl, {
             mag: gl.NEAREST,
             min: gl.NEAREST,
             format: gl.RGB,
@@ -45,7 +57,7 @@ export default class Renderer {
         const texture = new Uint8ClampedArray(3 * 1024);
 
         texture.set(colours.flat(), 0);
-        twgl.setTextureFromArray(this.gl, this.colours, texture, {
+        setTextureFromArray(this.gl, this.colours, texture, {
             format: this.gl.RGB,
             width: 1024,
             height: 1
@@ -53,9 +65,9 @@ export default class Renderer {
     }
 
     render() {
-        const [matrix, textureMatrix] = [twgl.m4.identity(), twgl.m4.identity()];
+        const [matrix, textureMatrix] = [m4.identity(), m4.identity()];
 
-        twgl.setTextureFromArray(this.gl, this.tileTexture, this.tiles, {
+        setTextureFromArray(this.gl, this.tileTexture, this.tiles, {
             internalFormat: this.gl.R8
         });
         const uniforms = {
@@ -66,16 +78,16 @@ export default class Renderer {
         };
 
         // these convert from pixels to clip space
-        twgl.m4.ortho(0, width, height, 0, -1, 1, matrix);
+        m4.ortho(0, width, height, 0, -1, 1, matrix);
 
         // these move and scale the unit quad into the size we want
         // in the target as pixels
-        twgl.m4.translate(matrix, [0, 0, 0], matrix);
-        twgl.m4.scale(matrix, [width, height, 1], matrix);
+        m4.translate(matrix, [0, 0, 0], matrix);
+        m4.scale(matrix, [width, height, 1], matrix);
 
         this.gl.useProgram(this.programInfo.program);
-        twgl.setBuffersAndAttributes(this.gl, this.programInfo, this.bufferInfo);
-        twgl.setUniforms(this.programInfo, uniforms);
-        twgl.drawBufferInfo(this.gl, this.bufferInfo);
+        setBuffersAndAttributes(this.gl, this.programInfo, this.bufferInfo);
+        setUniforms(this.programInfo, uniforms);
+        drawBufferInfo(this.gl, this.bufferInfo);
     }
 }

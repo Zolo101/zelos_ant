@@ -1,26 +1,11 @@
 <script lang="ts">
-    import { onMount, setContext } from "svelte";
-    import * as Blockly from "blockly";
+    import { onMount } from "svelte";
+
+    // It sucks that this plugin forces us to import 200kb worth of blockly stuff we don't use
     import "@blockly/field-colour-hsv-sliders";
     import Controls from "../lib/components/page/Controls.svelte";
-    import { javascriptGenerator, Order } from "blockly/javascript";
-    import {
-        // turnJSON,
-        // lookJSON,
-        // onJSON,
-        // moveJSON,
-        // iterationJSON,
-        injectOptions,
-        defaultBlockly,
-        // incrementJSON,
-        defaultTiles,
-        // dieJSON,
-        // cloneAntJSON,
-        // setJSON,
-        // startJSON,
-        blocks,
-        toolbox
-    } from "$lib/blockly";
+    import { javascriptGenerator } from "blockly/javascript";
+    import { injectOptions, defaultBlockly, defaultTiles, blocks, toolbox } from "$lib/blockly";
     import { addBlockToBlockly } from "$lib/blocklypain";
     import Renderer from "$lib/render/webgl2.svelte";
     import {
@@ -33,10 +18,9 @@
         type Game,
         type GameState,
         type PhotoSave,
-        type Save,
-        type Tile
+        type Save
     } from "$lib/stores.svelte";
-    import type { WorkspaceSvg } from "blockly";
+    import { Events, inject, serialization, type WorkspaceSvg } from "blockly";
     import Tiles from "../lib/components/page/Tiles.svelte";
     import Saves from "../lib/components/page/Saves.svelte";
     import zelosAntLogo from "$lib/assets/zelos_ant.png";
@@ -137,7 +121,7 @@
     const blocklyContainer: Attachment = (container) => {
         if (workspace) return;
 
-        // Build RawBlock -> Blockly.Block
+        // Build RawBlock -> Block
         for (const [type, block] of Object.entries(blocks)) {
             const { json, tooltip, onRun } = block;
             let b = block;
@@ -187,24 +171,23 @@
         console.log(toolbox);
 
         // registerContinuousToolbox();
-        workspace = Blockly.inject("blockly", injectOptions);
-        workspace.addChangeListener(Blockly.Events.disableOrphans);
+        workspace = inject("blockly", injectOptions);
+        workspace.addChangeListener(Events.disableOrphans);
 
         let code = "";
-        workspace.addChangeListener((e: Blockly.Events.Abstract) => {
+        workspace.addChangeListener((e: Events.Abstract) => {
             // console.log(e.type, e?.reason);
             if (
-                // e.type === Blockly.Events.BLOCK_CREATE ||
-                // e.type === Blockly.Events.BLOCK_DELETE ||
-                e.type === Blockly.Events.FINISHED_LOADING ||
-                e.type === Blockly.Events.BLOCK_CHANGE ||
-                e.type === Blockly.Events.BLOCK_MOVE ||
-                e.type === Blockly.Events.BLOCK_FIELD_INTERMEDIATE_CHANGE
+                // e.type === Events.BLOCK_CREATE ||
+                // e.type === Events.BLOCK_DELETE ||
+                e.type === Events.FINISHED_LOADING ||
+                e.type === Events.BLOCK_CHANGE ||
+                e.type === Events.BLOCK_MOVE ||
+                e.type === Events.BLOCK_FIELD_INTERMEDIATE_CHANGE
             ) {
                 const newCode = javascriptGenerator.workspaceToCode(workspace!);
-                if (e.type === Blockly.Events.BLOCK_FIELD_INTERMEDIATE_CHANGE) {
-                    const { name, blockId, newValue } =
-                        e as Blockly.Events.BlockFieldIntermediateChange;
+                if (e.type === Events.BLOCK_FIELD_INTERMEDIATE_CHANGE) {
+                    const { name, blockId, newValue } = e as Events.BlockFieldIntermediateChange;
                     if (name === "COLOUR") {
                         // In the case of colour
                         // Find the block and its tileId
@@ -218,9 +201,9 @@
                 }
 
                 if (newCode === code) return;
-                if (e.type === Blockly.Events.BLOCK_MOVE) {
+                if (e.type === Events.BLOCK_MOVE) {
                     if (newCode !== code) {
-                        const { reason } = e as Blockly.Events.BlockMove;
+                        const { reason } = e as Events.BlockMove;
                         if (reason?.[0] === "disconnect" || reason?.[0] === "connect") {
                             return;
                         }
@@ -249,11 +232,11 @@
                 }
             }
         });
-        Blockly.serialization.workspaces.load(defaultBlockly, workspace);
+        serialization.workspaces.load(defaultBlockly, workspace);
 
         function updateAutoSave() {
             autoSave.date = new Date();
-            autoSave.blockly = Blockly.serialization.workspaces.save(workspace!);
+            autoSave.blockly = serialization.workspaces.save(workspace!);
             autoSave.tiles = tiles;
 
             // weirdly enough as it turns out normal stringify is on par with the rest
@@ -270,7 +253,7 @@
         // function saveSnapshot(
         //     saves: PhotoSave[],
         //     renderer: Renderer,
-        //     workspace: Blockly.WorkspaceSvg,
+        //     workspace: WorkspaceSvg,
         //     canvas: HTMLCanvasElement
         // ) {
         //     const name = prompt("Name your save")?.trim();
@@ -278,7 +261,7 @@
         //         saves.push({
         //             name,
         //             date: new Date(),
-        //             blockly: Blockly.serialization.workspaces.save(workspace),
+        //             blockly: serialization.workspaces.save(workspace),
         //             tiles: Array.from(tiles),
         //             src: takePhoto(renderer, canvas)
         //         });
@@ -473,10 +456,10 @@
             {#if showSaves}
                 <div
                     transition:fade={{ duration: 100 }}
-                    class="absolute top-0 left-0 z-[99999] w-full overflow-auto"
+                    class="absolute top-0 left-0 z-9999 w-full overflow-auto"
                     style="height: {innerHeight.current! - headerHeight - 24}px;"
                 >
-                    <Saves {game} {gameState} {saves} />
+                    <Saves {game} {renderer} {workspace} {gameState} {saves} />
                 </div>
             {/if}
         </div>

@@ -1,5 +1,4 @@
-import type { Block } from "blockly";
-import * as Blockly from "blockly";
+import { Blocks, type Block } from "blockly";
 import { javascriptGenerator, Order } from "blockly/javascript";
 // import { toolbox } from "./blockly";
 
@@ -11,7 +10,7 @@ type BlockConstructorType = {
 };
 
 export function addBlockToBlockly(obj: BlockConstructorType) {
-    Blockly.Blocks[obj.name] = {
+    Blocks[obj.name] = {
         init: function () {
             this.jsonInit(obj.json);
             this.setTooltip(obj.tooltip(this));
