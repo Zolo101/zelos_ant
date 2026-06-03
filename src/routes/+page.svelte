@@ -12,12 +12,9 @@
         canvasSource,
         height,
         loadSnapshot,
-        restartGame,
         tick,
         tiles,
         width,
-        type Game,
-        type GameState,
         type PhotoSave,
         type Save,
         type Tile
@@ -30,24 +27,19 @@
     import sync from "$lib/sync.svelte";
     import { devicePixelRatio, innerHeight } from "svelte/reactivity/window";
     import { fade } from "svelte/transition";
-    import { getBackgroundColour, getForegroundColour, hexToRgb, rgbToHex } from "$lib/util";
-    import { page } from "$app/state";
-    import Board from "$lib/board";
+    import { getBackgroundColour, getForegroundColour, hexToRgb } from "$lib/util";
     import Ant from "$lib/ant";
-    import { SvelteSet } from "svelte/reactivity";
     import { replaceState } from "$app/navigation";
-    import Button from "$lib/components/Button.svelte";
     import { browser, dev } from "$app/environment";
     import type { Attachment } from "svelte/attachments";
+    import Game from "$lib/Game.svelte";
     // Currently broken
     // import { registerContinuousToolbox } from "@blockly/continuous-toolbox";
 
     let workspace: WorkspaceSvg | null = $state(null);
     let renderer: Renderer | null = $state(null);
     let DPR = $state(devicePixelRatio.current ?? 1);
-    let showSaves = $state(false);
-    let showAbout = $state(false);
-    let antLimit = 2 ** 14; // 16k
+    // let antLimit = 2 ** 14; // 16k
 
     function prefersDarkMode() {
         return browser && window.matchMedia("(prefers-color-scheme: dark)").matches;
@@ -62,24 +54,18 @@
               ];
     }
 
-    const game: Game = {
-        board: new Board(width, height),
-        ants: new SvelteSet(),
-        tileTriggers: new Map(),
-        onStart: () => {},
-        onEachIteration: () => {},
-        getState: () => gameState
-    };
+    // const game: Game = {
+    //     board: new Board(),
+    //     ants: new SvelteSet(),
+    //     tileTriggers: new Map(),
+    //     onStart: () => {},
+    //     onEachIteration: () => {},
+    //     getState: () => game.gameState
+    // };
 
-    let gameState: GameState = $state({
-        updateInProgress: false,
-        paused: false,
-        fps: 0,
-        iterations: 0,
-        iterationsPerTick: 1
-    });
+    const game = new Game();
 
-    let saves: Readonly<PhotoSave>[] = sync("ant-saves", []);
+    let saves: PhotoSave[] = sync("ant-saves", []);
 
     // TODO: Make a default save generator so we don't have to hardcode this
     let autoSave: Save = sync("current-save", {
@@ -94,13 +80,13 @@
         game.ants.add(new Ant({ x, y }));
     }
 
-    function cloneAnt(ant: Ant) {
-        if (game.ants.size < antLimit) {
-            // 65k limit
-            // TODO: Make this a setting
-            game.ants.add(new Ant({ x: ant.position.x, y: ant.position.y }));
-        }
-    }
+    // function cloneAnt(ant: Ant) {
+    //     if (game.ants.size < antLimit) {
+    //         // 65k limit
+    //         // TODO: Make this a setting
+    //         game.ants.add(new Ant({ x: ant.position.x, y: ant.position.y }));
+    //     }
+    // }
 
     // function killAnt(ant: Ant) {
     //     game.ants.delete(ant);
@@ -123,7 +109,7 @@
             autoSave.date = new Date();
             autoSave.blockly = defaultBlockly;
             autoSave.tiles = getDefaultTilesForTheme();
-            loadSnapshot(game, gameState, autoSave, renderer!, workspace!);
+            loadSnapshot(autoSave, renderer!, workspace!);
 
             // Reset users' url search params
             const url = new URL(window.location.href);
@@ -239,7 +225,7 @@
                 }
 
                 game.tileTriggers.clear();
-                restartGame(game, gameState);
+                Game.restart();
                 try {
                     // a better eval, but still not sandboxed
                     new Function("game", code)(game);
@@ -261,34 +247,33 @@
             // console.warn(JSON.stringify(autoSave));
         }
 
-        // function takePhoto(renderer: Renderer, canvas: HTMLCanvasElement) {
-        //     renderer.render();
-        //     return canvas.toDataURL();
-        // }
-
-        // function saveSnapshot(
-        //     saves: PhotoSave[],
-        //     renderer: Renderer,
-        //     workspace: WorkspaceSvg,
-        //     canvas: HTMLCanvasElement
-        // ) {
-        //     const name = prompt("Name your save")?.trim();
-        //     if (name) {
-        //         saves.push({
-        //             name,
-        //             date: new Date(),
-        //             blockly: serialization.workspaces.save(workspace),
-        //             tiles: Array.from(tiles),
-        //             src: takePhoto(renderer, canvas)
-        //         });
-        //     }
-        // }
-
         return () => {
             console.log("Destroying blockly canvas");
         };
     };
 
+    function takePhoto(renderer: Renderer, canvas: HTMLCanvasElement) {
+        renderer.render();
+        return canvas.toDataURL();
+    }
+
+    function saveSnapshot(
+        saves: PhotoSave[],
+        renderer: Renderer,
+        workspace: WorkspaceSvg,
+        canvas: HTMLCanvasElement
+    ) {
+        const name = prompt("Name your save")?.trim();
+        if (name) {
+            saves.push({
+                name,
+                date: new Date(),
+                blockly: serialization.workspaces.save(workspace),
+                tiles: Array.from(tiles),
+                src: takePhoto(renderer, canvas)
+            });
+        }
+    }
     const antCanvas: Attachment = (canvas) => {
         if (renderer) return;
         const gl2 = (canvas as HTMLCanvasElement).getContext("webgl2", {
@@ -297,7 +282,7 @@
 
         renderer = new Renderer(gl2);
 
-        restartGame(game, gameState);
+        Game.restart();
 
         renderer.updateColours();
 
@@ -308,15 +293,15 @@
         window.addEventListener("keydown", (e: KeyboardEvent) => {
             switch (e.code) {
                 case "KeyR":
-                    restartGame(game, gameState);
+                    Game.restart();
                     break;
 
                 case "KeyP":
-                    gameState.paused = !gameState.paused;
+                    game.gameState.paused = !game.gameState.paused;
                     break;
 
                 case "KeyT":
-                    gameState.fps = tick(game, gameState, renderer!, iterate);
+                    game.gameState.fps = tick(game, renderer!, iterate);
                     break;
             }
         });
@@ -339,7 +324,7 @@
         //         .getOne(params)
         //         .then((save) => {
         //             sharedSave = save.workspace;
-        //             loadSnapshot(game, gameState, save.workspace, renderer!, workspace!);
+        //             loadSnapshot(save.workspace, renderer!, workspace!);
         //         })
         //         .catch((err) => {
         //             console.error(err);
@@ -348,8 +333,8 @@
         // }
 
         function frame() {
-            if (!gameState.updateInProgress && !gameState.paused) {
-                gameState.fps = tick(game, gameState, renderer!, iterate);
+            if (!game.gameState.updateInProgress && !game.gameState.paused) {
+                game.gameState.fps = tick(game, renderer!, iterate);
             }
             renderer!.render();
 
@@ -367,8 +352,20 @@
         tiles.push(...defaultTilesForTheme);
 
         if (autoSave) {
-            loadSnapshot(game, gameState, autoSave, renderer!, workspace!);
+            loadSnapshot(autoSave, renderer!, workspace!);
         }
+
+        // DPR watch for canvas, does not work on chrome linux
+        // TODO: Make sure this isn't causing pixels to be "hidden" since we're technically rendering at a higher res than the css size
+        DPR = window.devicePixelRatio || 1;
+
+        const mediaQuery = window.matchMedia(`(resolution: ${DPR}dppx)`);
+        const updateDpr = () => {
+            DPR = window.devicePixelRatio || 1;
+        };
+        mediaQuery.addEventListener("change", updateDpr);
+
+        return () => mediaQuery.removeEventListener("change", updateDpr);
     });
 
     function iterate() {
@@ -389,8 +386,9 @@
 
     // Contains video URL of the recording
     let video: string | null = $state(null);
+    let canvas: HTMLCanvasElement | null = $state(null);
 
-    const fps = $derived(1000 / gameState.fps);
+    const fps = $derived(1000 / game.gameState.fps);
 </script>
 
 <svelte:head>
@@ -421,18 +419,21 @@
         style="image-rendering: pixelated;"
     />
 
-    <!-- <button
+    <button
         data-umami-event="save"
-        onclick={() => saveSnapshot(saves, renderer!, workspace!, canvas!)}>Save</button
+        onclick={() => {
+            if (renderer && workspace && canvas) {
+                saveSnapshot(saves, renderer, workspace, canvas);
+            }
+        }}>Save</button
     >
-    <span>•</span>
-    <button onclick={() => (showSaves = !showSaves)}>Load</button>
-    <span>•</span> -->
-    <button onclick={() => (showAbout = true)}>About</button>
+    <button onclick={() => (game.showSaves = !game.showSaves)}>Load</button>
+    <!-- <button onclick={() => (game.showSaves = !game.showSaves)}>Featured</button> -->
     <button onclick={resetWorkspace}>Reset</button>
+    <button onclick={() => (game.showAbout = true)}>About</button>
     <!-- <p class="opacity-75">Saves & Recording is currently disabled</p> -->
-    <div class="mr-5 ml-auto flex gap-9">
-        <span class="tabular-nums">{gameState.iterations.toLocaleString()} iterations</span>
+    <div class="mr-5 ml-auto flex gap-9 tabular-nums">
+        <span>{game.gameState.iterations.toLocaleString()} iterations</span>
         <!-- <span>
             {game.ants.size.toLocaleString()}
             {game.ants.size === 1 ? "ant" : "ants"} moving around
@@ -442,7 +443,7 @@
         </span>
     </div>
 
-    {#if gameState.fps > 1000 && gameState.paused}
+    {#if game.gameState.fps > 1000 && game.gameState.paused}
         <span class="text-red-500">Anti-Freeze: Game has auto paused</span>
     {/if}
     {#if sharedSave}
@@ -463,7 +464,7 @@
             {#if workspace && renderer}
                 <!-- This prop drilling is unavoidable dont bother -->
                 <!-- 2026 TODO: IS IT DOE??????????? -->
-                <Tiles {game} {workspace} {renderer} {gameState} />
+                <Tiles {workspace} {renderer} />
             {/if}
         </div>
         <div class="relative h-full w-full">
@@ -473,26 +474,30 @@
                 style="height: {innerHeight.current! - headerHeight - 115}px;"
                 {@attach blocklyContainer}
             ></div>
-            {#if showSaves}
+            {#if game.showSaves}
                 <div
                     transition:fade={{ duration: 100 }}
-                    class="absolute top-0 left-0 z-9999 w-full overflow-auto"
+                    class="absolute top-0 left-0 z-9999 w-full overflow-auto bg-violet-100/60 dark:bg-black/70 px-6 py-3 backdrop-blur-xs"
                     style="height: {innerHeight.current! - headerHeight - 24}px;"
                 >
-                    <Saves {game} {renderer} {workspace} {gameState} {saves} />
+                    <Saves {game} {renderer} {workspace} {saves} />
                 </div>
             {/if}
         </div>
     </div>
-    <div class="flex max-w-1/2 flex-col gap-2 px-3" style="width: {width / DPR}px;">
+    <div class="flex max-w-1/2 flex-col gap-2 mx-3" style="width: {width / DPR}px;">
         <canvas
-            style="max-height: {height / DPR}px; max-width: {width / DPR}px;"
-            class="outline transition-colors {[
-                (canvasSource && 'outline-red-500') || 'outline-white/10'
-            ]} {[video && 'hidden']} outline-2"
+            style="height: {height / DPR}px; width: {width / DPR}px;"
+            class={[
+                "outline transition-colors",
+                (canvasSource && "outline-red-500") || "outline-white/10",
+                video && "hidden",
+                "outline-2"
+            ]}
             id="canvas"
             {width}
             {height}
+            bind:this={canvas}
             {@attach antCanvas}
         ></canvas>
         {#if video}
@@ -503,23 +508,23 @@
             <!-- <img src={video} alt="Recorded gif" class="max-w-full" /> -->
         {/if}
         {#if renderer}
-            <Controls {iterate} {game} {renderer} bind:gameState bind:video />
+            <Controls {iterate} {game} {renderer} bind:video />
         {/if}
     </div>
 </main>
 
-{#if showAbout}
+{#if game.showAbout}
     <div
         class="fixed inset-0 z-500 flex items-center justify-center"
         transition:fade={{ duration: 200 }}
     >
         <div class="fixed inset-0 bg-black/75 backdrop-blur-xs"></div>
         <dialog
-            class="static z-10 h-120 w-160 overflow-y-auto rounded-lg bg-taupe-200 p-5 shadow-lg dark:bg-taupe-800"
-            open={showAbout}
+            class="static z-10 h-120 w-160 overflow-y-auto rounded-lg bg-taupe-200 p-5 shadow-lg dark:bg-(--dark2)"
+            open={game.showAbout}
         >
             <button
-                onclick={() => (showAbout = false)}
+                onclick={() => (game.showAbout = false)}
                 class="absolute top-2 right-2 rounded bg-red-500 px-3 py-1 text-white"
             >
                 Close

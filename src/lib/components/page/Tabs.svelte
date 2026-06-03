@@ -1,39 +1,32 @@
 <script lang="ts">
     import {
         downloadVideo,
-        restartGame,
         startRecording,
         stopRecording,
         tick,
         canvasSource,
-        type Game,
-        type GameState,
         recordingOptions
     } from "$lib/stores.svelte";
-    import { SvelteMap, SvelteSet } from "svelte/reactivity";
+    import { SvelteMap } from "svelte/reactivity";
     import Button from "../Button.svelte";
     import { dev } from "$app/environment";
     import IconButton from "../IconButton.svelte";
     import type Renderer from "$lib/render/webgl2.svelte";
-    import Tiles from "./Tiles.svelte";
-    import type { WorkspaceSvg } from "blockly";
-    import Link from "../Link.svelte";
+    import Game from "$lib/Game.svelte";
 
     let {
         iterate,
         game,
-        gameState = $bindable(),
         renderer,
         video = $bindable()
     }: {
         iterate: () => void;
         game: Game;
-        gameState: GameState;
         renderer: Renderer;
         video: any;
     } = $props();
 
-    let sliderValue = $state(Math.log10(gameState.iterationsPerTick));
+    let sliderValue = $derived(Math.log10(game.gameState.iterationsPerTick));
 
     function formatIterations(iterations: number): string {
         return iterations.toLocaleString();
@@ -44,7 +37,7 @@
     }
 
     function oneTick() {
-        gameState.fps = tick(game, gameState, renderer!, iterate);
+        game.gameState.fps = tick(game, renderer!, iterate);
     }
 
     const formats: Record<string, string[]> = {
@@ -60,7 +53,7 @@
         } else {
             try {
                 video = await stopRecording(format, formats[format]);
-                gameState.paused = true;
+                game.gameState.paused = true;
             } catch (e) {
                 console.error("Recording error:", e);
             }
@@ -88,7 +81,7 @@
             step=".1"
             bind:value={sliderValue}
             class="w-full"
-            oninput={() => (gameState.iterationsPerTick = getsliderValue())}
+            oninput={() => (game.gameState.iterationsPerTick = getsliderValue())}
         />
         <div class="w-32 text-center">
             <span>{formatIterations(getsliderValue())}</span>
@@ -116,14 +109,14 @@
 {#snippet controls()}
     <div class="flex gap-3 *:grow">
         <IconButton
-            icon={gameState.paused ? "play" : "pause"}
-            onclick={() => (gameState.paused = !gameState.paused)}
+            icon={game.gameState.paused ? "play" : "pause"}
+            onclick={() => (game.gameState.paused = !game.gameState.paused)}
             hotkey="P"
         />
         <IconButton
             icon="restart"
             onclick={() => {
-                restartGame(game, gameState);
+                Game.restart();
             }}
             hotkey="R"
         />
@@ -190,5 +183,5 @@
 {/snippet}
 
 <!-- {#snippet tiles()} -->
-<!-- <Tiles {game} {gameState} {workspace} {renderer} /> -->
+<!-- <Tiles {game} {game.gameState} {workspace} {renderer} /> -->
 <!-- {/snippet} -->

@@ -2,15 +2,18 @@ import Ant from "./ant";
 import { tiles } from "./stores.svelte";
 
 export default class Board {
-    width: number;
-    height: number;
+    // width: number;
+    // height: number;
+    width = 800;
+    height = 800;
     cells: Uint8ClampedArray;
     image: Uint8ClampedArray;
 
-    constructor(width: number, height: number) {
-        this.width = width;
-        this.height = height;
-        this.cells = new Uint8ClampedArray(width * height);
+    // constructor(width: number, height: number) {
+    constructor() {
+        // this.width = width;
+        // this.height = height;
+        this.cells = new Uint8ClampedArray(this.width * this.height);
         this.image = new Uint8ClampedArray(3 * this.width * this.height);
         this.clear();
     }

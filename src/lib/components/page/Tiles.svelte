@@ -1,25 +1,15 @@
 <script lang="ts">
     import TilesTile from "../TilesTile.svelte";
-    import {
-        restartGame,
-        tiles,
-        type Game,
-        type GameState,
-        type RGB,
-        type Tile
-    } from "$lib/stores.svelte";
+    import { tiles, type RGB, type Tile } from "$lib/stores.svelte";
     import type Renderer from "$lib/render/webgl2.svelte";
     import { rgbToHex } from "$lib/util";
     import type { WorkspaceSvg } from "blockly";
+    import Game from "$lib/Game.svelte";
 
     let {
-        game,
-        gameState,
         renderer,
         workspace
     }: {
-        game: Game;
-        gameState: GameState;
         renderer: Renderer;
         workspace: WorkspaceSvg;
     } = $props();
@@ -80,7 +70,7 @@
             } // derive a formula
 
             workspace.render();
-            restartGame(game, gameState);
+            Game.restart();
         }
     }
 
@@ -90,7 +80,7 @@
         // Remove the block
         tiles.splice(tiles.indexOf(tile), 1);
         updateTileColours();
-        restartGame(game, gameState);
+        Game.restart();
     }
 </script>
 

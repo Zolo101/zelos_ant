@@ -1,20 +1,21 @@
-import type { SvelteSet } from "svelte/reactivity";
-import Ant from "./ant";
-import type Board from "./board";
+// import type { SvelteSet } from "svelte/reactivity";
+// import Ant from "./ant";
+// import type Board from "./board";
 import type Renderer from "./render/webgl2.svelte";
-import { FFmpeg } from "@ffmpeg/ffmpeg";
-import { fetchFile } from "@ffmpeg/util";
+// import { FFmpeg } from "@ffmpeg/ffmpeg";
+// import { fetchFile } from "@ffmpeg/util";
 import { serialization, type WorkspaceSvg } from "blockly";
 import {
     BufferTarget,
     CanvasSource,
     MkvOutputFormat,
     Output,
-    QUALITY_HIGH,
-    QUALITY_MEDIUM,
-    QUALITY_VERY_HIGH,
-    QUALITY_VERY_LOW
+    QUALITY_HIGH
+    // QUALITY_MEDIUM,
+    // QUALITY_VERY_HIGH,
+    // QUALITY_VERY_LOW
 } from "mediabunny";
+import Game from "./Game.svelte";
 
 export const width = $state(800);
 export const height = $state(800);
@@ -45,53 +46,29 @@ export type Tile = {
     triggers: string[];
 };
 
-// Things that don't
-export type Game = {
-    board: Board;
-    ants: SvelteSet<Ant>;
-    tileTriggers: Map<number, (ant: Ant) => void>;
-    onStart: () => void;
-    onEachIteration: (ant: Ant) => void;
-    getState(): GameState;
-};
-
-// Things that need to be updated in the UI
-export type GameState = {
-    updateInProgress: boolean;
-    paused: boolean;
-    fps: number;
-    iterations: number;
-    iterationsPerTick: number;
-};
-
 let output: Output<MkvOutputFormat, BufferTarget> | null = null;
 let recordingWriteQueue: Promise<void> = Promise.resolve();
 
-export function tick(
-    game: Game,
-    gameState: GameState,
-    renderer: Renderer,
-    iterate: () => void
-) {
-    gameState.updateInProgress = true;
+export function tick(game: Game, renderer: Renderer, iterate: () => void) {
+    game.gameState.updateInProgress = true;
 
     const pn1 = performance.now();
 
     try {
-        for (let i = 0; i < gameState.iterationsPerTick; i++) {
+        for (let i = 0; i < game.gameState.iterationsPerTick; i++) {
             iterate();
-            gameState.iterations++;
+            game.gameState.iterations++;
         }
     } catch (e) {
         console.error(e);
-        gameState.paused = true;
+        game.gameState.paused = true;
         alert("Maximum number of ants reached. Please restart the game.");
     }
 
-    // gameState.iterations += gameState.iterationsPerTick;
+    // game.gameState.iterations += game.gameState.iterationsPerTick;
     renderer.tiles = game.board.cells;
 
-    gameState.updateInProgress = false;
+    game.gameState.updateInProgress = false;
 
     const time = performance.now() - pn1;
 
@@ -107,19 +84,10 @@ export function tick(
 
     // 5 seconds timeout
     if (time > 1000) {
-        gameState.paused = true;
+        game.gameState.paused = true;
     }
 
     return time;
-}
-
-export function restartGame(game: Game, gameState: GameState) {
-    game.board.clear();
-    game.ants.clear();
-
-    gameState.iterations = 0;
-    game.onStart();
-    game.ants.add(new Ant({ x: game.board.width / 2, y: game.board.height / 2 }));
 }
 
 export async function startRecording(renderer: Renderer) {
@@ -239,13 +207,7 @@ export async function downloadVideo(video: string, format: string) {
 //     }
 // }
 
-export function loadSnapshot(
-    game: Game,
-    gameState: GameState,
-    save: Save,
-    renderer: Renderer,
-    workspace: WorkspaceSvg
-) {
+export function loadSnapshot(save: Save, renderer: Renderer, workspace: WorkspaceSvg) {
     // clear and import tiles
     tiles.length = 0;
     save.tiles.forEach((tile) => {
@@ -254,5 +216,5 @@ export function loadSnapshot(
 
     serialization.workspaces.load(save.blockly, workspace);
     renderer.updateColours();
-    restartGame(game, gameState);
+    Game.restart();
 }
