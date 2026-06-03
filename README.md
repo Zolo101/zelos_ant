@@ -1,25 +1,24 @@
 # ![zelo's ant logo](src/lib/assets/zelos_ant_3x.png)
 
-**[zelo's ant](https://ant.zelo.dev)** is an interactive Langton's ant simulator on the web. Create your own rules and see what patterns the ant makes.
+**[zelo's ant](https://ant.zelo.dev)** is an interactive [Langton's ant](https://en.wikipedia.org/wiki/Langton%27s_ant) simulator on the web. Create your own rules and see what patterns the ant makes.
+
+<img
+  src="https://docs.blockly.com/images/logos/built-with-blockly-badge-white.svg"
+  alt="Built with Blockly"
+  height="48"
+/>
 
 ![zelo's ant editor](src/lib/assets/zelos_ant_2_editor.png)
 
-## What's so cool about this?
+## What's the big deal with ants?
 
-- ⚡ **Fast**
-  - Able to run **1 million** iterations under **300ms** using default rules.
-  - Uses **WebGL2** for rendering.
-- 💡 Easy to use
-  - Block-based visual programming GUI (Like Scratch!).
-    <!-- - Tooltips on every block. -->
-    <!-- - Easy to save, load and share creations! -->
-- 📋 Extremely customizable rules
-  - Create your own rules for any tile.
-  - Ability to change what the ant does every iteration.
+This simulator shows you how a simple set of rules can create complex patterns. One small edit and the result becomes completely different! It's also a great way to learn about cellular automata and emergent behavior.
+
+In the future you'll also be able to explore rules made by other users.
 
 ## Tech Stack
 
-- **Blockly** for the visual blocks
+- **Blockly** for the visual block editor
 - **Netlify** for hosting
 - **SvelteKit** as fullstack framework
 - **Umami** for analytics
