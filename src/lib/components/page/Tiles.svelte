@@ -85,7 +85,7 @@
     }
 
     function removeTile(tile: Tile) {
-        if (tiles.length > 1) return;
+        if (tiles.length <= 1) return;
 
         // Remove the block
         tiles.splice(tiles.indexOf(tile), 1);
@@ -94,7 +94,7 @@
     }
 </script>
 
-<section class="relative z-100 rounded bg-violet-100 px-4 py-4 dark:bg-violet-950">
+<section class="relative z-100 rounded bg-violet-100 px-4 py-4 dark:bg-(--dark2)">
     <p class="text-left text-violet-600">Manage Tiles (click to remove)</p>
     <div class="my-2 flex flex-row flex-wrap content-start gap-2">
         {#each tiles as tile, index (index)}
@@ -102,9 +102,9 @@
         {/each}
         <button
             onclick={() => addTile(true)}
-            class="flex h-10 w-10 cursor-pointer bg-violet-400 font-bold text-violet-200 outline-1 outline-violet-500"
+            class="flex h-10 w-10 cursor-pointer bg-violet-400 font-bold text-violet-200 outline-1 outline-violet-500 dark:bg-violet-900 dark:outline-violet-900"
         >
-            <span class="relative bottom-3.5 m-auto text-6xl">+</span>
+            <span class="relative bottom-3.75 m-auto text-6xl">+</span>
         </button>
     </div>
 </section>
