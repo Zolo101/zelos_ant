@@ -97,7 +97,8 @@
     </div>
 </div>
 {@render controls()}
-<div class="flex gap-2 border-b border-violet-200 text-lg dark:border-violet-500">
+<!-- <div class="flex gap-2 border-b border-violet-200 text-lg dark:border-violet-500"> -->
+<div class="flex gap-2 text-lg">
     <!-- {#each tabs as [name] (name)}
         <button
             class={[

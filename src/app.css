@@ -7,11 +7,17 @@
 body {
     font-family: "Atkinson Hyperlegible", sans-serif;
     margin: 0;
-    background-color: light-dark(white, black);
     /* color: white; */
     /* --blockly-primary-text: black; */
-
+    
     --primary: var(--color-violet-600);
+    --light: var(--color-violet-50);
+    /* --dark: oklch(0.13 0.07 298.62); */
+    --dark: oklch(9.564% 0.05104 300.124);
+    --dark2: color-mix(in oklab, var(--dark) 60%, var(--color-violet-950));
+
+
+    background-color: light-dark(var(--light), var(--dark));
     color: color-mix(in oklab, var(--primary) 10%, currentColor);
 }
 
@@ -44,7 +50,7 @@ text {
 } */
 
 .blocklySvg {
-    background-color: color-mix(in oklab, light-dark(white, black) 90%, var(--primary));
+    background-color: color-mix(in oklab, light-dark(var(--light), var(--dark)) 90%, var(--primary));
 }
 
 .blocklyMainBackground {

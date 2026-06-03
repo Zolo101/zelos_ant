@@ -417,7 +417,7 @@
         src={zelosAntLogo}
         alt="Zelos Ant Logo"
         width={164 / DPR}
-        class="relative bottom-1 hue-rotate-280"
+        class="relative bottom-1"
         style="image-rendering: pixelated;"
     />
 
@@ -433,10 +433,10 @@
     <!-- <p class="opacity-75">Saves & Recording is currently disabled</p> -->
     <div class="mr-5 ml-auto flex gap-9">
         <span class="tabular-nums">{gameState.iterations.toLocaleString()} iterations</span>
-        <span>
+        <!-- <span>
             {game.ants.size.toLocaleString()}
             {game.ants.size === 1 ? "ant" : "ants"} moving around
-        </span>
+        </span> -->
         <span>
             {fps > 60 ? ">60fps" : `${fps.toPrecision(2)}fps`}
         </span>
@@ -515,7 +515,7 @@
     >
         <div class="fixed inset-0 bg-black/75 backdrop-blur-xs"></div>
         <dialog
-            class="static z-10 h-80 w-120 overflow-y-auto rounded-lg bg-taupe-200 p-5 shadow-lg dark:bg-taupe-800"
+            class="static z-10 h-120 w-160 overflow-y-auto rounded-lg bg-taupe-200 p-5 shadow-lg dark:bg-taupe-800"
             open={showAbout}
         >
             <button
@@ -529,32 +529,47 @@
                     src={zelosAntLogo}
                     alt="Zelos Ant Logo"
                     width={360 / DPR}
-                    class="mx-auto hue-rotate-280"
+                    class="mx-auto"
                     style="image-rendering: pixelated;"
                 />
                 <p class="text-center text-xs">2.0.0 alpha 2</p>
-                <p class="text-center">They're MY ants, not yours</p>
                 <br />
+
+                <p>
+                    zelo's ant is an interactive
+                    <Link href="https://en.wikipedia.org/wiki/Langton%27s_ant">Langton's ant</Link> simulator
+                    on the web. Create your own rules and see what patterns the ant makes.
+                </p>
+
+                <br />
+                <p>
+                    This simulator shows you how a simple set of rules can create complex patterns.
+                    One small edit and the result becomes completely different! It's also a great
+                    way to learn about cellular automata and emergent behavior. In the future,
+                    you'll also be able to explore rules made by other users.
+                </p>
                 <br />
 
                 <div class="flex flex-col gap-2">
+                    <!-- <div>
+                        <span>If you REALLY REALLY NEED HELP!! JOIN MY</span>
+                        <Link href="https://discord.gg/YVuuF9KB5j">DISCORD!!</Link>
+                    </div> -->
+
+                    <div>
+                        <span
+                            >If you want to contribute / report issues, visit the <Link
+                                href="https://github.com/Zolo101/zelos_ant">GitHub repository</Link
+                            >, or <Link href="https://zelo.dev/about">email me!</Link> &lt;3</span
+                        >
+                    </div>
+
                     <div>
                         <span>Check out more cool stuff on</span>
                         <Link href="https://zelo.dev/">my website!</Link>
                     </div>
-
-                    <div>
-                        <span>If you REALLY REALLY NEED HELP!! JOIN MY</span>
-                        <Link href="https://discord.gg/YVuuF9KB5j">DISCORD!!</Link>
-                    </div>
-
-                    <div>
-                        <span
-                            >...or if you are calm and want to contribute / report issues, visit the</span
-                        >
-                        <Link href="https://github.com/Zolo101/zelos_ant">source code.</Link>
-                    </div>
                 </div>
+                <!-- <p class="text-center text-xs">They're MY ants, not yours</p> -->
             </div>
         </dialog>
     </div>
