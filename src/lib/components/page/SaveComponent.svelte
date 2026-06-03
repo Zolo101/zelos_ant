@@ -65,7 +65,7 @@
         />
     </button>
     <div>
-        <p class="overflow-x-hidden px-1 text-center font-bold overflow-ellipsis">
+        <p class="overflow-x-hidden px-1 text-center font-bold text-ellipsis">
             {save.name}
         </p>
         <div class="flex items-center justify-between bg-black/70 px-2 pt-0.5 text-xs">

@@ -7,5 +7,4 @@ node_modules
 .env.*
 !.env.example
 /.idea
-src/ant/assembly/wasm
 yarn-error.log

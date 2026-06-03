@@ -1,8 +1,6 @@
 import Ant from "./ant";
 import { tiles } from "./stores.svelte";
 
-// import { cellsToImage } from "./assembly/wasm/release";
-
 export default class Board {
     width: number;
     height: number;

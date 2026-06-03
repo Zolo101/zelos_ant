@@ -1,5 +1,3 @@
-// import { moveForward_wasm } from "./assembly/wasm/release";
-
 import { height, width } from "./stores.svelte";
 
 enum AntRotation {

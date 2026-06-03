@@ -46,6 +46,7 @@
     let renderer: Renderer | null = $state(null);
     let DPR = $state(devicePixelRatio.current ?? 1);
     let showSaves = $state(false);
+    let showAbout = $state(false);
     let antLimit = 2 ** 14; // 16k
 
     function prefersDarkMode() {
@@ -77,8 +78,6 @@
         iterations: 0,
         iterationsPerTick: 1
     });
-
-    let showAbout = $state(true);
 
     let saves: Readonly<PhotoSave>[] = sync("ant-saves", []);
 
