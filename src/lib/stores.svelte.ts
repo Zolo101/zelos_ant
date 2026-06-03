@@ -5,19 +5,29 @@ import type Renderer from "./render/webgl2.svelte";
 import { FFmpeg } from "@ffmpeg/ffmpeg";
 import { fetchFile } from "@ffmpeg/util";
 import { serialization, type WorkspaceSvg } from "blockly";
+import {
+    BufferTarget,
+    CanvasSource,
+    MkvOutputFormat,
+    Output,
+    QUALITY_HIGH,
+    QUALITY_MEDIUM,
+    QUALITY_VERY_HIGH,
+    QUALITY_VERY_LOW
+} from "mediabunny";
 
 export const width = $state(800);
 export const height = $state(800);
 
 export const tiles: Tile[] = $state([]);
 
-let recorder: MediaRecorder | null = null;
-let chunks: Blob[] = [];
+export let canvasSource: CanvasSource | null = null;
+export const recordingOptions = {
+    lossless: false,
+    yuv444: false
+};
 
-let ffmpeg: FFmpeg | null = null;
-let recording = false;
 let frameCount = 0;
-let intervalId: number | null = null;
 
 export type PhotoSave = Save & { src: string };
 
@@ -54,7 +64,15 @@ export type GameState = {
     iterationsPerTick: number;
 };
 
-export function tick(game: Game, gameState: GameState, renderer: Renderer, iterate: () => void) {
+let output: Output<MkvOutputFormat, BufferTarget> | null = null;
+let recordingWriteQueue: Promise<void> = Promise.resolve();
+
+export function tick(
+    game: Game,
+    gameState: GameState,
+    renderer: Renderer,
+    iterate: () => void
+) {
     gameState.updateInProgress = true;
 
     const pn1 = performance.now();
@@ -77,6 +95,16 @@ export function tick(game: Game, gameState: GameState, renderer: Renderer, itera
 
     const time = performance.now() - pn1;
 
+    if (canvasSource && output && output.state === "started") {
+        const source = canvasSource;
+        const timestamp = frameCount / 60;
+        frameCount++;
+
+        recordingWriteQueue = recordingWriteQueue
+            .then(() => source.add(timestamp, 0.0166, { keyFrame: recordingOptions.lossless }))
+            .catch((e) => console.error("Error writing frame:", e));
+    }
+
     // 5 seconds timeout
     if (time > 1000) {
         gameState.paused = true;
@@ -96,52 +124,61 @@ export function restartGame(game: Game, gameState: GameState) {
 
 export async function startRecording(renderer: Renderer) {
     console.log("startRecording called");
-    if (!ffmpeg) {
-        ffmpeg = new FFmpeg();
-        ffmpeg.on("log", ({ type, message }) => {
-            console.log(`[FFmpeg ${type}]: ${message}`);
-        });
-        await ffmpeg.load();
-        console.log("FFmpeg loaded");
-    }
-    recording = true;
+    // recording = true;
     frameCount = 0;
+    recordingWriteQueue = Promise.resolve();
     const canvas = renderer.gl.canvas as HTMLCanvasElement;
     console.log("Canvas size:", canvas.width, canvas.height);
-    intervalId = setInterval(async () => {
-        if (!recording) return;
-        try {
-            const dataURL = canvas.toDataURL("image/png");
-            const response = await fetch(dataURL);
-            const blob = await response.blob();
-            const fileName = `${frameCount.toString().padStart(9, "0")}.png`;
-            await ffmpeg!.writeFile(fileName, await fetchFile(blob));
-            console.log(fileName, "written, size:", blob.size);
-            frameCount++;
-        } catch (e) {
-            console.error("Error writing frame:", e);
-        }
-    }, 1000 / 10);
+    canvasSource = new CanvasSource(canvas, {
+        // codec: "vp9",
+        codec: "av1",
+        // bitrate: QUALITY_MEDIUM,
+        bitrate: QUALITY_HIGH,
+        // fullCodecString: "vp09.01.30.08.03.01.01.01.01",
+        fullCodecString: "av01.1.08H.08",
+        contentHint: "text"
+    });
+    output = new Output({
+        target: new BufferTarget(),
+        format: new MkvOutputFormat()
+    });
+    // output.target.onwrite = (start, end) => {
+    //     console.log("Wrote bytes:", start, end);
+    // };
+    output.addVideoTrack(canvasSource);
+    await output.start();
+    // intervalId = setInterval(async () => {
+    //     if (!recording) return;
+    //     try {
+    //         // console.log(fileName, "written, size:", blob.size);
+    //         await canvasSource.add(frameCount / 10, 0.1);
+    //         frameCount++;
+    //     } catch (e) {
+    //         console.error("Error writing frame:", e);
+    //     }
+    // }, 1000 / 10);
     // }, 1);
 }
 
 export async function stopRecording(format: string, params: string[]) {
     console.log("stopRecording called, frameCount:", frameCount);
-    recording = false;
-    if (intervalId) {
-        clearInterval(intervalId);
-        intervalId = null;
-    }
-    if (ffmpeg && frameCount > 0) {
-        console.warn(await ffmpeg!.listDir("/"));
+    // recording = false;
+    // if (intervalId) {
+    //     clearInterval(intervalId);
+    //     intervalId = null;
+    // }
+
+    // if (canvasSource && frameCount > 0) {
+    if (canvasSource && output) {
         console.log(`Encoding ${frameCount} frames`);
-        const ext = format.split("/")[1];
-        const filename = `output.${ext}`;
-        await ffmpeg!.exec([...params, filename]);
+
+        await recordingWriteQueue;
+        canvasSource.close();
+        await output.finalize();
+
         console.log("Encoding done");
-        const data = await ffmpeg!.readFile(filename);
-        console.log("File read, size:", data.length);
-        const blob = new Blob([data as BlobPart], { type: format });
+        const blob = new Blob([output.target.buffer!], { type: output.format.mimeType });
+        console.log("File read, size:", blob.size);
         return URL.createObjectURL(blob);
     } else {
         throw new Error("No frames recorded or FFmpeg not initialized");
