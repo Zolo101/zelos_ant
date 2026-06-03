@@ -11,7 +11,7 @@ import {
     type BufferInfo,
     type ProgramInfo
 } from "twgl.js";
-import "webgl-lint";
+// import "webgl-lint";
 import vertexShader from "./vertex.glsl?raw";
 import fragmentShader from "./fragment.glsl?raw";
 import { height, tiles, width, type RGB } from "../stores.svelte";

@@ -3,12 +3,13 @@
 
     // It sucks that this plugin forces us to import 200kb worth of blockly stuff we don't use
     import "@blockly/field-colour-hsv-sliders";
-    import Controls from "../lib/components/page/Controls.svelte";
+    import Controls from "../lib/components/page/Tabs.svelte";
     import { javascriptGenerator } from "blockly/javascript";
     import { injectOptions, defaultBlockly, defaultTiles, blocks, toolbox } from "$lib/blockly";
     import { addBlockToBlockly } from "$lib/blocklypain";
     import Renderer from "$lib/render/webgl2.svelte";
     import {
+        canvasSource,
         height,
         loadSnapshot,
         restartGame,
@@ -18,7 +19,8 @@
         type Game,
         type GameState,
         type PhotoSave,
-        type Save
+        type Save,
+        type Tile
     } from "$lib/stores.svelte";
     import { Events, inject, serialization, type WorkspaceSvg } from "blockly";
     import Tiles from "../lib/components/page/Tiles.svelte";
@@ -35,7 +37,7 @@
     import { SvelteSet } from "svelte/reactivity";
     import { replaceState } from "$app/navigation";
     import Button from "$lib/components/Button.svelte";
-    import { dev } from "$app/environment";
+    import { browser, dev } from "$app/environment";
     import type { Attachment } from "svelte/attachments";
     // Currently broken
     // import { registerContinuousToolbox } from "@blockly/continuous-toolbox";
@@ -45,6 +47,19 @@
     let DPR = $state(devicePixelRatio.current ?? 1);
     let showSaves = $state(false);
     let antLimit = 2 ** 14; // 16k
+
+    function prefersDarkMode() {
+        return browser && window.matchMedia("(prefers-color-scheme: dark)").matches;
+    }
+
+    function getDefaultTilesForTheme(): Tile[] {
+        return prefersDarkMode()
+            ? structuredClone(defaultTiles)
+            : [
+                  { colour: [255, 255, 255], triggers: ["turn right"] },
+                  { colour: [0, 0, 0], triggers: ["turn left"] }
+              ];
+    }
 
     const game: Game = {
         board: new Board(width, height),
@@ -63,6 +78,8 @@
         iterationsPerTick: 1
     });
 
+    let showAbout = $state(true);
+
     let saves: Readonly<PhotoSave>[] = sync("ant-saves", []);
 
     // TODO: Make a default save generator so we don't have to hardcode this
@@ -70,7 +87,7 @@
         name: "AutoSave",
         date: new Date(),
         blockly: defaultBlockly,
-        tiles: defaultTiles
+        tiles: getDefaultTilesForTheme()
     });
     let sharedSave: Save | null = $state(null);
 
@@ -106,7 +123,7 @@
             // Reset the auto save (or current save)
             autoSave.date = new Date();
             autoSave.blockly = defaultBlockly;
-            autoSave.tiles = defaultTiles;
+            autoSave.tiles = getDefaultTilesForTheme();
             loadSnapshot(game, gameState, autoSave, renderer!, workspace!);
 
             // Reset users' url search params
@@ -346,8 +363,9 @@
     };
 
     onMount(() => {
-        tiles.push({ colour: [0, 0, 0], triggers: ["turn right"] });
-        tiles.push({ colour: [255, 255, 255], triggers: ["turn left"] });
+        const defaultTilesForTheme = getDefaultTilesForTheme();
+
+        tiles.push(...defaultTilesForTheme);
 
         if (autoSave) {
             loadSnapshot(game, gameState, autoSave, renderer!, workspace!);
@@ -368,7 +386,7 @@
     // For blockly positioning
     let headerHeight = $state(0);
 
-    let recording = $state(false);
+    // let recording = $state(false);
 
     // Contains video URL of the recording
     let video: string | null = $state(null);
@@ -387,20 +405,23 @@
         src="https://analytics.zelo.dev/script.js"
         data-website-id="86e78800-b780-4b47-bccd-4da3f6e67f7b"
     ></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&display=swap"
+        rel="stylesheet"
+    />
 </svelte:head>
 
-<header class="flex items-end gap-3 text-xs font-medium" bind:clientHeight={headerHeight}>
+<header class="mx-3 my-1 flex items-end gap-9 text-lg" bind:clientHeight={headerHeight}>
     <img
         src={zelosAntLogo}
         alt="Zelos Ant Logo"
         width={164 / DPR}
-        class="mt-3 ml-3 hue-rotate-280"
+        class="relative bottom-1 hue-rotate-280"
         style="image-rendering: pixelated;"
     />
-    <Link href="https://github.com/Zolo101/zelos_ant">2.0.0 alpha</Link>
-    <span>•</span>
-    <Link href="https://discord.gg/YVuuF9KB5j">Discord</Link>
-    <span>•</span>
+
     <!-- <button
         data-umami-event="save"
         onclick={() => saveSnapshot(saves, renderer!, workspace!, canvas!)}>Save</button
@@ -408,24 +429,21 @@
     <span>•</span>
     <button onclick={() => (showSaves = !showSaves)}>Load</button>
     <span>•</span> -->
+    <button onclick={() => (showAbout = true)}>About</button>
     <button onclick={resetWorkspace}>Reset</button>
-    <span>•</span>
-    <p class="opacity-75">Saves & Recording is currently disabled</p>
-    <div class="text-md ml-auto flex gap-3 pr-5">
-        <span>
-            {fps > 60 ? ">60fps" : `${fps.toPrecision(2)}fps`}
-        </span>
-        <span>•</span>
+    <!-- <p class="opacity-75">Saves & Recording is currently disabled</p> -->
+    <div class="mr-5 ml-auto flex gap-9">
+        <span class="tabular-nums">{gameState.iterations.toLocaleString()} iterations</span>
         <span>
             {game.ants.size.toLocaleString()}
             {game.ants.size === 1 ? "ant" : "ants"} moving around
         </span>
-        <span>•</span>
-        <span>Iterations: {gameState.iterations.toLocaleString()}</span>
+        <span>
+            {fps > 60 ? ">60fps" : `${fps.toPrecision(2)}fps`}
+        </span>
     </div>
 
     {#if gameState.fps > 1000 && gameState.paused}
-        <span>•</span>
         <span class="text-red-500">Anti-Freeze: Game has auto paused</span>
     {/if}
     {#if sharedSave}
@@ -440,8 +458,15 @@
         </div>
     {/if}
 </header>
-<main class="flex gap-3 p-3">
+<main class="flex">
     <div class="grow">
+        <div class="absolute bottom-0 left-0 w-full">
+            {#if workspace && renderer}
+                <!-- This prop drilling is unavoidable dont bother -->
+                <!-- 2026 TODO: IS IT DOE??????????? -->
+                <Tiles {game} {workspace} {renderer} {gameState} />
+            {/if}
+        </div>
         <div class="relative h-full w-full">
             <div
                 class="w-full"
@@ -449,10 +474,6 @@
                 style="height: {innerHeight.current! - headerHeight - 115}px;"
                 {@attach blocklyContainer}
             ></div>
-            {#if workspace && renderer}
-                <!-- This prop drilling is unavoidable dont bother -->
-                <Tiles {game} {workspace} {renderer} {gameState} />
-            {/if}
             {#if showSaves}
                 <div
                     transition:fade={{ duration: 100 }}
@@ -464,11 +485,11 @@
             {/if}
         </div>
     </div>
-    <div class="flex max-w-1/2 flex-col gap-2" style="width: {width / DPR}px;">
+    <div class="flex max-w-1/2 flex-col gap-2 px-3" style="width: {width / DPR}px;">
         <canvas
             style="max-height: {height / DPR}px; max-width: {width / DPR}px;"
             class="outline transition-colors {[
-                (recording && 'outline-red-500') || 'outline-white/10'
+                (canvasSource && 'outline-red-500') || 'outline-white/10'
             ]} {[video && 'hidden']} outline-2"
             id="canvas"
             {width}
@@ -476,14 +497,66 @@
             {@attach antCanvas}
         ></canvas>
         {#if video}
-            <!-- <video class="max-w-full" controls>
+            <video class="max-w-full" controls>
                 <track kind="captions" />
                 <source src={video} type="video/mp4" />
-            </video> -->
-            <img src={video} alt="Recorded gif" class="max-w-full" />
+            </video>
+            <!-- <img src={video} alt="Recorded gif" class="max-w-full" /> -->
         {/if}
         {#if renderer}
-            <Controls {iterate} {game} {renderer} bind:gameState bind:recording bind:video />
+            <Controls {iterate} {game} {renderer} bind:gameState bind:video />
         {/if}
     </div>
 </main>
+
+{#if showAbout}
+    <div
+        class="fixed inset-0 z-500 flex items-center justify-center"
+        transition:fade={{ duration: 200 }}
+    >
+        <div class="fixed inset-0 bg-black/75 backdrop-blur-xs"></div>
+        <dialog
+            class="static z-10 h-80 w-120 overflow-y-auto rounded-lg bg-taupe-200 p-5 shadow-lg dark:bg-taupe-800"
+            open={showAbout}
+        >
+            <button
+                onclick={() => (showAbout = false)}
+                class="absolute top-2 right-2 rounded bg-red-500 px-3 py-1 text-white"
+            >
+                Close
+            </button>
+            <div>
+                <img
+                    src={zelosAntLogo}
+                    alt="Zelos Ant Logo"
+                    width={360 / DPR}
+                    class="mx-auto hue-rotate-280"
+                    style="image-rendering: pixelated;"
+                />
+                <p class="text-center text-xs">2.0.0 alpha 2</p>
+                <p class="text-center">They're MY ants, not yours</p>
+                <br />
+                <br />
+
+                <div class="flex flex-col gap-2">
+                    <div>
+                        <span>Check out more cool stuff on</span>
+                        <Link href="https://zelo.dev/">my website!</Link>
+                    </div>
+
+                    <div>
+                        <span>If you REALLY REALLY NEED HELP!! JOIN MY</span>
+                        <Link href="https://discord.gg/YVuuF9KB5j">DISCORD!!</Link>
+                    </div>
+
+                    <div>
+                        <span
+                            >...or if you are calm and want to contribute / report issues, visit the</span
+                        >
+                        <Link href="https://github.com/Zolo101/zelos_ant">source code.</Link>
+                    </div>
+                </div>
+            </div>
+        </dialog>
+    </div>
+{/if}

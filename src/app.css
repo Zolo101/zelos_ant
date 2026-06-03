@@ -1,17 +1,22 @@
-@import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
 @import "tailwindcss";
 
+:root {
+    color-scheme: light dark;
+}
+
 body {
-    font-family: "Roboto", sans-serif;
+    font-family: "Atkinson Hyperlegible", sans-serif;
     margin: 0;
-    background-color: black;
+    background-color: light-dark(white, black);
     /* color: white; */
-    color: color-mix(in srgb, purple 10%, white);
-    --blockly-primary-text: black;
+    /* --blockly-primary-text: black; */
+
+    --primary: var(--color-violet-600);
+    color: color-mix(in oklab, var(--primary) 10%, currentColor);
 }
 
 a {
-    color: color-mix(in srgb, purple 20%, white);
+    color: color-mix(in oklab, var(--primary) 20%, currentColor);
 }
 
 /* Blockly */
@@ -22,14 +27,15 @@ a {
 
 .zelos-renderer.zelos-theme .blocklyDropdownText {
     fill: var(--blockly-primary-text) !important;
-    font-family: "Roboto", sans-serif !important;
-    /* font-weight: 500 !important; */
+    font-family: "Atkinson Hyperlegible", sans-serif !important;
+    font-weight: 400 !important;
+    font-style: italic !important;
 }
 
 text {
     fill: var(--blockly-primary-text) !important;
-    font-family: "Roboto", sans-serif !important;
-    font-weight: normal !important;
+    font-family: "Atkinson Hyperlegible", sans-serif !important;
+    font-weight: 500 !important;
 }
 
 /* .blocklyText, .blocklyFieldText, .blocklyDropdownText {
@@ -38,13 +44,13 @@ text {
 } */
 
 .blocklySvg {
-    background-color: color-mix(in srgb, black 90%, purple);
+    background-color: color-mix(in oklab, light-dark(white, black) 90%, var(--primary));
 }
 
 .blocklyMainBackground {
     stroke: none;
-    /* --blocklyGridPattern: color-mix(in srgb, black 20%, purple); */
-    /* stroke: color-mix(in srgb, black 90%, purple); */
+    /* --blocklyGridPattern: color-mix(in oklab, black 20%, var(--primary)); */
+    /* stroke: color-mix(in oklab, black 90%, var(--primary)); */
 }
 
 .blocklyFlyout,
@@ -53,8 +59,9 @@ text {
 }
 
 .blocklyFlyoutBackground {
-    /* fill: color-mix(in srgb, white 15%, black); */
+    /* fill: color-mix(in oklab, white 15%, black); */
     fill: rgba(0, 0, 0, 0.5);
+    /* fill: color-mix(in oklab, currentColor 50%, transparent); */
     fill-opacity: 1;
 }
 
@@ -72,8 +79,9 @@ text {
     padding-left: 10px;
     backdrop-filter: blur(2px);
     background-color: rgba(0, 0, 0, 0.5);
+    /* background-color: color-mix(in oklab, currentColor 50%, rgba(0, 0, 0, 0.5)); */
     font-weight: bold;
-    @apply text-purple-100;
+    color: var(--color-violet-100);
 }
 
 .blocklyMutatorBackground {

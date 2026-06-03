@@ -3,7 +3,7 @@
 </script>
 
 <button
-    class="relative cursor-pointer rounded bg-purple-950/20 px-6 py-2 font-medium text-purple-200 outline-2 outline-purple-900 transition-all hover:bg-purple-950/50 {classNames}"
+    class="relative cursor-pointer rounded bg-violet-950/20 px-6 py-2 font-medium text-violet-200 outline-2 outline-violet-900 transition-all hover:bg-violet-950/50 {classNames}"
     {...rest}
 >
     {@render children?.()}

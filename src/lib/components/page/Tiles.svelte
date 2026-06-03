@@ -94,17 +94,17 @@
     }
 </script>
 
-<section class="relative z-100 rounded bg-purple-950/40 p-2">
-    <p class="text-left text-sm font-medium text-purple-300">Manage Tiles (click to remove)</p>
+<section class="relative z-100 rounded bg-violet-100 px-4 py-4 dark:bg-violet-950">
+    <p class="text-left text-violet-600">Manage Tiles (click to remove)</p>
     <div class="my-2 flex flex-row flex-wrap content-start gap-2">
-        {#each tiles as tile, index}
+        {#each tiles as tile, index (index)}
             <TilesTile {tile} {index} onclick={() => removeTile(tile)} />
         {/each}
         <button
             onclick={() => addTile(true)}
-            class="flex h-10 w-10 cursor-pointer bg-black font-bold text-purple-200 outline-1 outline-purple-500"
+            class="flex h-10 w-10 cursor-pointer bg-violet-400 font-bold text-violet-200 outline-1 outline-violet-500"
         >
-            <span class="m-auto text-xl">+</span>
+            <span class="relative bottom-3.5 m-auto text-6xl">+</span>
         </button>
     </div>
 </section>
