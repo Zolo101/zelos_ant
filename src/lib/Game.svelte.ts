@@ -1,6 +1,12 @@
-import { SvelteMap, SvelteSet } from "svelte/reactivity";
 import Ant from "./ant";
 import Board from "./board";
+
+class UserCodeTimeoutError extends Error {
+    constructor() {
+        super("The program ran for longer than 1 second and was stopped.");
+        this.name = "UserCodeTimeoutError";
+    }
+}
 
 export default class Game {
     board = new Board();
@@ -10,7 +16,13 @@ export default class Game {
     // tileTriggers = new Map<number, (ant: Ant) => void>();
     tileTriggers: Array<(ant: Ant) => void> = [];
     onStart = () => {};
-    onEachIteration = (ant: Ant) => {};
+
+    /**
+     *
+     * @param ant The ant to run the iteration on
+     * @param subIter Ticks are done on N iterations/steps. game.gameState.iterations only increments every tick, not step.
+     */
+    onEachIteration = (ant: Ant, subIter: number) => {};
     gameState = $state({
         updateInProgress: false,
         paused: false,
@@ -20,7 +32,40 @@ export default class Game {
     });
 
     showSaves = $state(false);
+    showSettings = $state(false);
     showAbout = $state(false);
+
+    settings = $state({
+        advancedMode: false,
+        loop: true,
+        noTimeout: false,
+        reduceMotion: false
+    });
+
+    private userCodeDeadline = Infinity;
+
+    checkUserCodeDeadline = () => {
+        if (performance.now() >= this.userCodeDeadline) {
+            throw new UserCodeTimeoutError();
+        }
+    };
+
+    runUserCode<Args extends unknown[]>(callback: (...args: Args) => void, ...args: Args): boolean {
+        if (!this.settings.noTimeout) {
+            this.userCodeDeadline = performance.now() + 1000;
+        }
+
+        try {
+            callback(...args);
+            return true;
+        } catch (error) {
+            this.gameState.paused = true;
+            console.error(error);
+            return false;
+        } finally {
+            this.userCodeDeadline = Infinity;
+        }
+    }
 
     // stolen from everything market (upcoming game im making... sshhhh)
     // https://github.com/sveltejs/svelte/issues/9547
@@ -38,7 +83,7 @@ export default class Game {
         game.ants.clear();
 
         game.gameState.iterations = 0;
-        game.onStart();
+        game.runUserCode(game.onStart);
         game.ants.add(new Ant({ x: game.board.width / 2, y: game.board.height / 2 }));
     }
 }

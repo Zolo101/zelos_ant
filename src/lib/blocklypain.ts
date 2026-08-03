@@ -13,7 +13,7 @@ export function addBlockToBlockly(obj: BlockConstructorType) {
     Blocks[obj.name] = {
         init: function () {
             this.jsonInit(obj.json);
-            this.setTooltip(obj.tooltip(this));
+            this.setTooltip(() => obj.tooltip(this));
         }
     };
 

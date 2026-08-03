@@ -4,18 +4,23 @@
     color-scheme: light dark;
 }
 
+body,
+.blocklyToolboxCategoryLabel,
+.blocklyText {
+    font-family: "Atkinson Hyperlegible Next", sans-serif;
+    font-optical-sizing: auto;
+}
+
 body {
-    font-family: "Atkinson Hyperlegible", sans-serif;
     margin: 0;
     /* color: white; */
     /* --blockly-primary-text: black; */
-    
+
     --primary: var(--color-violet-600);
     --light: var(--color-violet-50);
     /* --dark: oklch(0.13 0.07 298.62); */
     --dark: oklch(9.564% 0.05104 300.124);
     --dark2: color-mix(in oklab, var(--dark) 60%, var(--color-violet-950));
-
 
     background-color: light-dark(var(--light), var(--dark));
     color: color-mix(in oklab, var(--primary) 10%, currentColor);
@@ -26,6 +31,24 @@ a {
 }
 
 /* Blockly */
+
+.blocklyToolboxCategoryGroup > div {
+    margin-bottom: 10px;
+}
+
+.blocklyTreeSeparator {
+    margin: 0;
+}
+
+.blocklyToolboxCategory,
+.blocklyTreeRowContentContainer {
+    height: 64px;
+}
+
+.blocklyToolboxCategoryLabel {
+    margin: auto;
+}
+
 /* .blocklyToolboxCategoryLabel { */
 /* color: black; */
 /* font-weight: bold; */
@@ -33,15 +56,15 @@ a {
 
 .zelos-renderer.zelos-theme .blocklyDropdownText {
     fill: var(--blockly-primary-text) !important;
-    font-family: "Atkinson Hyperlegible", sans-serif !important;
+    font-family: "Atkinson Hyperlegible Next", sans-serif !important;
     font-weight: 400 !important;
     font-style: italic !important;
 }
 
 text {
     fill: var(--blockly-primary-text) !important;
-    font-family: "Atkinson Hyperlegible", sans-serif !important;
-    font-weight: 500 !important;
+    font-family: "Atkinson Hyperlegible Next", sans-serif !important;
+    font-weight: 400 !important;
 }
 
 /* .blocklyText, .blocklyFieldText, .blocklyDropdownText {
@@ -50,7 +73,11 @@ text {
 } */
 
 .blocklySvg {
-    background-color: color-mix(in oklab, light-dark(var(--light), var(--dark)) 90%, var(--primary));
+    background-color: color-mix(
+        in oklab,
+        light-dark(var(--light), var(--dark)) 90%,
+        var(--primary)
+    );
 }
 
 .blocklyMainBackground {
@@ -95,6 +122,15 @@ text {
     outline: none;
 }
 
+.blocklyDropDownDiv {
+    background-color: light-dark(var(--light), var(--dark));
+    backdrop-filter: blur(2px);
+}
+
+.fieldColourSliderContainer {
+    color: light-dark(var(--dark), var(--light));
+}
+
 /* Hat blocks for the events */
 .blocklyPath[fill="#ffbf01"] {
     d: path(
@@ -120,6 +156,10 @@ path[transform="translate(28, 48)"] {
 .blocklyMenuItemContent {
     color: var(--blockly-primary-text) !important;
 }
+
+/* .blocklyZoom > image {
+    opacity: 1;
+} */
 
 /* .blocklyBlock:has(.blocklyPath[fill="#ffbf01"]) {
     padding: 16px;

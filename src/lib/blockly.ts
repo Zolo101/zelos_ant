@@ -8,7 +8,104 @@ type RawBlock = {
     onRun: (block: Block) => string | [string, Order];
 };
 
+function getValueInputText(block: Block, inputName: string): string {
+    return block.getInputTargetBlock(inputName)?.toString(undefined, "a number") ?? "a number";
+}
+
 export const blocks = {
+    on: {
+        json: {
+            kind: "block",
+            type: "on",
+            message0: "On Tile %1 %2 %3 %4",
+            args0: [
+                {
+                    type: "field_number",
+                    name: "TileID",
+                    value: 0,
+                    min: 0
+                },
+                {
+                    type: "field_colour_hsv_sliders",
+                    name: "COLOUR",
+                    colour: "#ff0000"
+                },
+                {
+                    type: "input_dummy"
+                },
+                {
+                    type: "input_statement",
+                    name: "NAME"
+                }
+            ],
+            colour: "#ffbf01",
+            tooltip: "",
+            helpUrl: ""
+        },
+        tooltip: (block) => {
+            return `Triggers when an ant steps on tile ${block.getFieldValue("TileID")}.`;
+        },
+        onRun: (block) => {
+            // TODO: Why not make this dynamic (e.g. stuff like "x % 2" instead of just constants)
+            const number_tileid = block.getFieldValue("TileID");
+            const statements_name = javascriptGenerator.statementToCode(block, "NAME");
+            return `// On tile ${number_tileid}\ngame.tileTriggers[${number_tileid}] = (ant) => {\n${statements_name}};\n`;
+        }
+    },
+    start: {
+        json: {
+            type: "start",
+            message0: "On start %1 %2",
+            args0: [
+                {
+                    type: "input_dummy"
+                },
+                {
+                    type: "input_statement",
+                    name: "NAME"
+                }
+            ],
+            colour: "#ffbf01",
+            tooltip: "",
+            helpUrl: ""
+        },
+        tooltip: () => {
+            return `Triggers on restart.`;
+        },
+        onRun: (block) => {
+            // let number_tileid = block.getFieldValue("TileID");
+            const statements_name = javascriptGenerator.statementToCode(block, "NAME");
+            return `// On start\ngame.onStart = (ant) => {\n${statements_name}}\n`;
+        }
+    },
+    iteration: {
+        json: {
+            type: "iteration",
+            message0: "Every step %1 %2",
+            args0: [
+                {
+                    type: "input_dummy"
+                },
+                {
+                    type: "input_statement",
+                    name: "NAME"
+                }
+            ],
+            colour: "#ffbf01",
+            tooltip: "",
+            helpUrl: ""
+        },
+        tooltip: () => {
+            return `Triggers Every step.`;
+        },
+        onRun: (block) => {
+            // let number_tileid = block.getFieldValue("TileID");
+
+            const statements_name = javascriptGenerator.statementToCode(block, "NAME");
+
+            return `// On iteration\ngame.onEachIteration = (ant, i) => {\n${statements_name}}\n`;
+        }
+    },
     turn: {
         json: {
             message0: "Turn %1",
@@ -77,45 +174,6 @@ export const blocks = {
             }
         }
     },
-    on: {
-        json: {
-            kind: "block",
-            type: "on",
-            message0: "On Tile %1 %2 %3 %4",
-            args0: [
-                {
-                    type: "field_number",
-                    name: "TileID",
-                    value: 0,
-                    min: 0
-                },
-                {
-                    type: "field_colour_hsv_sliders",
-                    name: "COLOUR",
-                    colour: "#ff0000"
-                },
-                {
-                    type: "input_dummy"
-                },
-                {
-                    type: "input_statement",
-                    name: "NAME"
-                }
-            ],
-            colour: "#ffbf01",
-            tooltip: "",
-            helpUrl: ""
-        },
-        tooltip: (block) => {
-            return `Triggers when an ant steps on tile ${block.getFieldValue("TileID")}.`;
-        },
-        onRun: (block) => {
-            // TODO: Why not make this dynamic (e.g. stuff like "x % 2" instead of just constants)
-            const number_tileid = block.getFieldValue("TileID");
-            const statements_name = javascriptGenerator.statementToCode(block, "NAME");
-            return `// On tile ${number_tileid}\ngame.tileTriggers.set(${number_tileid}, (ant) => {\n${statements_name}});\n`;
-        }
-    },
     move: {
         json: {
             type: "move",
@@ -134,7 +192,7 @@ export const blocks = {
             helpUrl: ""
         },
         tooltip: (block) => {
-            return `Moves the ant forward by ${block.getFieldValue("NAME")}.`;
+            return `Moves the ant forward by ${getValueInputText(block, "NAME")}.`;
         },
         onRun: (block: Block) => {
             const amount = javascriptGenerator.valueToCode(block, "NAME", Order.NONE);
@@ -159,7 +217,7 @@ export const blocks = {
             helpUrl: ""
         },
         tooltip: (block) => {
-            return `Increments the current cell by ${block.getFieldValue("NAME")}.`;
+            return `Increments the current cell by ${getValueInputText(block, "NAME")}.`;
         },
         onRun: (block) => {
             const amount = javascriptGenerator.valueToCode(block, "NAME", Order.NONE);
@@ -184,65 +242,11 @@ export const blocks = {
             helpUrl: ""
         },
         tooltip: (block) => {
-            return `Sets the current cell to tile ${block.getFieldValue("NAME")}.`;
+            return `Sets the current cell to tile ${getValueInputText(block, "NAME")}.`;
         },
         onRun: (block: Block) => {
             const amount = javascriptGenerator.valueToCode(block, "NAME", Order.ADDITION);
             return `game.board.setCell(ant.position.x, ant.position.y, ${amount})\n`;
-        }
-    },
-    start: {
-        json: {
-            type: "start",
-            message0: "On start %1 %2",
-            args0: [
-                {
-                    type: "input_dummy"
-                },
-                {
-                    type: "input_statement",
-                    name: "NAME"
-                }
-            ],
-            colour: "#ffbf01",
-            tooltip: "",
-            helpUrl: ""
-        },
-        tooltip: () => {
-            return `Triggers on restart.`;
-        },
-        onRun: (block) => {
-            // let number_tileid = block.getFieldValue("TileID");
-            const statements_name = javascriptGenerator.statementToCode(block, "NAME");
-            return `// On start\ngame.onStart = (ant) => {\n${statements_name}}\n`;
-        }
-    },
-    iteration: {
-        json: {
-            type: "iteration",
-            message0: "On each iteration %1 %2",
-            args0: [
-                {
-                    type: "input_dummy"
-                },
-                {
-                    type: "input_statement",
-                    name: "NAME"
-                }
-            ],
-            colour: "#ffbf01",
-            tooltip: "",
-            helpUrl: ""
-        },
-        tooltip: () => {
-            return `Triggers on each iteration.`;
-        },
-        onRun: (block) => {
-            // let number_tileid = block.getFieldValue("TileID");
-
-            const statements_name = javascriptGenerator.statementToCode(block, "NAME");
-
-            return `// On iteration\ngame.onEachIteration = (ant) => {\n${statements_name}}\n`;
         }
     },
     tile: {
@@ -266,383 +270,36 @@ export const blocks = {
         onRun: () => {
             return [`game.board.getCell(ant.position.x, ant.position.y)`, Order.FUNCTION_CALL];
         }
-    },
-    iterations: {
-        json: {
-            type: "iterations",
-            tooltip: "",
-            helpUrl: "",
-            message0: "iterations %1",
-            args0: [
-                {
-                    type: "input_dummy",
-                    name: "NAME"
-                }
-            ],
-            output: "Number",
-            colour: "#35c700"
-        },
-        tooltip: () => {
-            return `The number of iterations computed.`;
-        },
-        onRun: () => {
-            return [`game.getState().iterations`, Order.FUNCTION_CALL];
-        }
     }
+    // iterations: {
+    //     json: {
+    //         type: "iterations",
+    //         tooltip: "",
+    //         helpUrl: "",
+    //         message0: "iterations %1",
+    //         args0: [
+    //             {
+    //                 type: "input_dummy",
+    //                 name: "NAME"
+    //             }
+    //         ],
+    //         output: "Number",
+    //         colour: "#35c700"
+    //     },
+    //     tooltip: () => {
+    //         return `The number of iterations computed.`;
+    //     },
+    //     onRun: () => {
+    //         return [`game.gameState.iterations + i`, Order.FUNCTION_CALL];
+    //     }
+    // }
 } as Record<string, RawBlock>;
-
-// export const [
-// turnJSON,
-// lookJSON,
-// onJSON,
-// moveJSON,
-// incrementJSON,
-// setJSON,
-// iterationJSON,
-// startJSON,
-// iterationOnEveryJSON,
-// createAntJSON,
-// cloneAntJSON,
-// dieJSON
-// ] = [
-// {
-//     type: "turn",
-//     message0: "Turn %1",
-//     args0: [
-//         {
-//             type: "field_dropdown",
-//             name: "Directions",
-//             options: [
-//                 ["left", "Left"],
-//                 ["right", "Right"],
-//                 ["back", "Back"]
-//             ]
-//         }
-//     ],
-//     previousStatement: null,
-//     nextStatement: null,
-//     colour: "#4cbfe6",
-//     tooltip: "",
-//     helpUrl: ""
-// },
-// {
-//     type: "look",
-//     message0: "Look %1",
-//     args0: [
-//         {
-//             type: "field_dropdown",
-//             name: "Directions",
-//             options: [
-//                 ["north", "North"],
-//                 ["east", "East"],
-//                 ["south", "South"],
-//                 ["west", "West"]
-//             ]
-//         }
-//     ],
-//     previousStatement: null,
-//     nextStatement: null,
-//     colour: "#4cbfe6",
-//     tooltip: "",
-//     helpUrl: ""
-// },
-// {
-//     kind: "block",
-//     type: "on",
-//     message0: "On Tile %1 %2 %3 %4",
-//     // "inputs": {
-//     //     "TileID": {
-//     //         "block": {
-//     //             "type": "field_number",
-//     //             "fields": {
-//     //                 "NUM": 0
-//     //             }
-//     //         }
-//     //     }
-//     // },
-//     args0: [
-//         {
-//             type: "field_number",
-//             name: "TileID",
-//             value: 0,
-//             min: 0
-//         },
-//         {
-//             type: "field_colour_hsv_sliders",
-//             name: "COLOUR",
-//             colour: "#ff0000"
-//         },
-//         {
-//             type: "input_dummy"
-//         },
-//         {
-//             type: "input_statement",
-//             name: "NAME"
-//         }
-//     ],
-//     colour: "#ffbf01",
-//     tooltip: "",
-//     helpUrl: ""
-// },
-// {
-//     type: "move",
-//     message0: "Move forward by %1",
-//     args0: [
-//         {
-//             type: "input_value",
-//             name: "NAME",
-//             check: "Number"
-//         }
-//     ],
-//     previousStatement: null,
-//     nextStatement: null,
-//     colour: "#4c97ff",
-//     tooltip: "",
-//     helpUrl: ""
-// },
-// {
-//     type: "increment",
-//     message0: "Increment cell by %1",
-//     args0: [
-//         {
-//             type: "input_value",
-//             name: "NAME",
-//             check: "Number"
-//         }
-//     ],
-//     previousStatement: null,
-//     nextStatement: null,
-//     colour: "#4c97ff",
-//     tooltip: "",
-//     helpUrl: ""
-// },
-// {
-//     type: "set",
-//     message0: "Set cell to tile %1",
-//     args0: [
-//         {
-//             type: "input_value",
-//             name: "NAME",
-//             check: "Number"
-//         }
-//     ],
-//     previousStatement: null,
-//     nextStatement: null,
-//     colour: "#4c97ff",
-//     tooltip: "",
-//     helpUrl: ""
-// },
-// {
-//     type: "iteration",
-//     message0: "On each iteration %1 %2",
-//     args0: [
-//         {
-//             type: "input_dummy"
-//         },
-//         {
-//             type: "input_statement",
-//             name: "NAME"
-//         }
-//     ],
-//     colour: "#ffbf01",
-//     tooltip: "",
-//     helpUrl: ""
-// },
-// {
-//     type: "start",
-//     message0: "On start %1 %2",
-//     args0: [
-//         {
-//             type: "input_dummy"
-//         },
-//         {
-//             type: "input_statement",
-//             name: "NAME"
-//         }
-//     ],
-//     colour: "#ffbf01",
-//     tooltip: "",
-//     helpUrl: ""
-// },
-// {
-//     type: "iteration_onevery",
-//     message0: "On every %1 th iteration %2 %3",
-//     args0: [
-//         {
-//             type: "field_number",
-//             name: "NAME",
-//             value: 0,
-//             min: 1
-//         },
-//         {
-//             type: "input_dummy"
-//         },
-//         {
-//             type: "input_statement",
-//             name: "NAME"
-//         }
-//     ],
-//     colour: "#ffbf01",
-//     tooltip: "",
-//     helpUrl: ""
-// },
-// {
-//     type: "create_ant",
-//     message0: "Create ant at X %1 Y %2",
-//     args0: [
-//         {
-//             type: "input_value",
-//             name: "X",
-//             check: "Number",
-//             shadow: {
-//                 type: "X",
-//                 fields: {
-//                     NUM: 1
-//                 }
-//             }
-//         },
-//         {
-//             type: "input_value",
-//             name: "Y",
-//             check: "Number",
-//             shadow: {
-//                 type: "Y",
-//                 fields: {
-//                     NUM: 1
-//                 }
-//             }
-//         }
-//     ],
-//     inputsInline: true,
-//     previousStatement: null,
-//     nextStatement: null,
-//     colour: "#ff6680",
-//     tooltip: "",
-//     helpUrl: ""
-// },
-// {
-//     type: "clone_ant",
-//     message0: "Clone ant",
-//     previousStatement: null,
-//     nextStatement: null,
-//     colour: "#0ed985",
-//     tooltip: "",
-//     helpUrl: ""
-// },
-// {
-//     type: "die",
-//     message0: "Die",
-//     previousStatement: null,
-//     nextStatement: null,
-//     colour: "#0ed985",
-//     tooltip: "",
-//     helpUrl: ""
-// }
-// ];
 
 export const toolbox = {
     contents: [
         {
             kind: "CATEGORY",
-            contents: [
-                // {
-                //     kind: "block",
-                //     type: "turn"
-                // },
-                // {
-                //     kind: "block",
-                //     type: "look"
-                // },
-                // {
-                //     kind: "block",
-                //     type: "move",
-                //     inputs: {
-                //         NAME: {
-                //             shadow: {
-                //                 type: "math_number",
-                //                 fields: {
-                //                     NUM: 1
-                //                 }
-                //             }
-                //         }
-                //     }
-                // },
-                // {
-                //     kind: "block",
-                //     type: "increment",
-                //     inputs: {
-                //         NAME: {
-                //             shadow: {
-                //                 type: "math_number",
-                //                 fields: {
-                //                     NUM: 1
-                //                 }
-                //             }
-                //         }
-                //     }
-                // },
-                // {
-                //     kind: "block",
-                //     type: "set",
-                //     inputs: {
-                //         NAME: {
-                //             shadow: {
-                //                 type: "math_number",
-                //                 fields: {
-                //                     NUM: 1
-                //                 }
-                //             }
-                //         }
-                //     }
-                // },
-                // {
-                //     kind: "block",
-                //     type: "on"
-                // },
-                // {
-                //     kind: "block",
-                //     type: "start"
-                // },
-                // {
-                //     kind: "block",
-                //     type: "iteration"
-                // },
-                // {
-                //     "kind": "block",
-                //     "type": "iteration_onevery"
-                // },
-                // TODO: Removed for now (not really useful)
-                // {
-                //     kind: "block",
-                //     type: "create_ant",
-                //     inputs: {
-                //         X: {
-                //             shadow: {
-                //                 type: "math_number",
-                //                 fields: {
-                //                     NUM: 1
-                //                 }
-                //             }
-                //         },
-                //         Y: {
-                //             shadow: {
-                //                 type: "math_number",
-                //                 fields: {
-                //                     NUM: 1
-                //                 }
-                //             }
-                //         }
-                //     }
-                // }
-                // {
-                //     kind: "block",
-                //     type: "clone_ant"
-                // },
-                // {
-                //     kind: "block",
-                //     type: "die"
-                // }
-            ],
+            contents: [],
             id: "catZA",
             colour: "#981d98",
             name: "Ant"
@@ -707,17 +364,17 @@ export const toolbox = {
                     blockxml: '<block type="controls_whileUntil"></block>',
                     type: "controls_whileUntil"
                 },
-                {
-                    kind: "BLOCK",
-                    blockxml:
-                        '<block type="controls_for">\n          <value name="FROM">\n            <shadow type="math_number">\n              <field name="NUM">1</field>\n            </shadow>\n          </value>\n          <value name="TO">\n            <shadow type="math_number">\n              <field name="NUM">10</field>\n            </shadow>\n          </value>\n          <value name="BY">\n            <shadow type="math_number">\n              <field name="NUM">1</field>\n            </shadow>\n          </value>\n        </block>',
-                    type: "controls_for"
-                },
-                {
-                    kind: "BLOCK",
-                    blockxml: '<block type="controls_forEach"></block>',
-                    type: "controls_forEach"
-                },
+                // {
+                //     kind: "BLOCK",
+                //     blockxml:
+                //         '<block type="controls_for">\n          <value name="FROM">\n            <shadow type="math_number">\n              <field name="NUM">1</field>\n            </shadow>\n          </value>\n          <value name="TO">\n            <shadow type="math_number">\n              <field name="NUM">10</field>\n            </shadow>\n          </value>\n          <value name="BY">\n            <shadow type="math_number">\n              <field name="NUM">1</field>\n            </shadow>\n          </value>\n        </block>',
+                //     type: "controls_for"
+                // },
+                // {
+                //     kind: "BLOCK",
+                //     blockxml: '<block type="controls_forEach"></block>',
+                //     type: "controls_forEach"
+                // },
                 {
                     kind: "BLOCK",
                     blockxml: '<block type="controls_flow_statements"></block>',
@@ -765,23 +422,23 @@ export const toolbox = {
                         '<block type="math_number_property">\n          <value name="NUMBER_TO_CHECK">\n            <shadow type="math_number">\n              <field name="NUM">0</field>\n            </shadow>\n          </value>\n        </block>',
                     type: "math_number_property"
                 },
-                {
-                    kind: "BLOCK",
-                    blockxml:
-                        '<block type="math_change">\n          <value name="DELTA">\n            <shadow type="math_number">\n              <field name="NUM">1</field>\n            </shadow>\n          </value>\n        </block>',
-                    type: "math_change"
-                },
+                // {
+                //     kind: "BLOCK",
+                //     blockxml:
+                //         '<block type="math_change">\n          <value name="DELTA">\n            <shadow type="math_number">\n              <field name="NUM">1</field>\n            </shadow>\n          </value>\n        </block>',
+                //     type: "math_change"
+                // },
                 {
                     kind: "BLOCK",
                     blockxml:
                         '<block type="math_round">\n          <value name="NUM">\n            <shadow type="math_number">\n              <field name="NUM">3.1</field>\n            </shadow>\n          </value>\n        </block>',
                     type: "math_round"
                 },
-                {
-                    kind: "BLOCK",
-                    blockxml: '<block type="math_on_list"></block>',
-                    type: "math_on_list"
-                },
+                // {
+                //     kind: "BLOCK",
+                //     blockxml: '<block type="math_on_list"></block>',
+                //     type: "math_on_list"
+                // },
                 {
                     kind: "BLOCK",
                     blockxml:
@@ -809,85 +466,85 @@ export const toolbox = {
             id: "catMath",
             colour: "#59c059",
             name: "Math"
-        },
-        {
-            kind: "CATEGORY",
-            contents: [
-                {
-                    kind: "BLOCK",
-                    blockxml: '<block type="text"></block>',
-                    type: "text"
-                },
-                {
-                    kind: "BLOCK",
-                    blockxml: '<block type="text_join"></block>',
-                    type: "text_join"
-                },
-                {
-                    kind: "BLOCK",
-                    blockxml:
-                        '<block type="text_append">\n          <value name="TEXT">\n            <shadow type="text"></shadow>\n          </value>\n        </block>',
-                    type: "text_append"
-                },
-                {
-                    kind: "BLOCK",
-                    blockxml:
-                        '<block type="text_length">\n          <value name="VALUE">\n            <shadow type="text">\n              <field name="TEXT">abc</field>\n            </shadow>\n          </value>\n        </block>',
-                    type: "text_length"
-                },
-                {
-                    kind: "BLOCK",
-                    blockxml:
-                        '<block type="text_isEmpty">\n          <value name="VALUE">\n            <shadow type="text">\n              <field name="TEXT"></field>\n            </shadow>\n          </value>\n        </block>',
-                    type: "text_isEmpty"
-                },
-                {
-                    kind: "BLOCK",
-                    blockxml:
-                        '<block type="text_indexOf">\n          <value name="VALUE">\n            <block type="variables_get">\n              <field name="VAR">text</field>\n            </block>\n          </value>\n          <value name="FIND">\n            <shadow type="text">\n              <field name="TEXT">abc</field>\n            </shadow>\n          </value>\n        </block>',
-                    type: "text_indexOf"
-                },
-                {
-                    kind: "BLOCK",
-                    blockxml:
-                        '<block type="text_charAt">\n          <value name="VALUE">\n            <block type="variables_get">\n              <field name="VAR">text</field>\n            </block>\n          </value>\n        </block>',
-                    type: "text_charAt"
-                },
-                {
-                    kind: "BLOCK",
-                    blockxml:
-                        '<block type="text_getSubstring">\n          <value name="STRING">\n            <block type="variables_get">\n              <field name="VAR">text</field>\n            </block>\n          </value>\n        </block>',
-                    type: "text_getSubstring"
-                },
-                {
-                    kind: "BLOCK",
-                    blockxml:
-                        '<block type="text_changeCase">\n          <value name="TEXT">\n            <shadow type="text">\n              <field name="TEXT">abc</field>\n            </shadow>\n          </value>\n        </block>',
-                    type: "text_changeCase"
-                },
-                {
-                    kind: "BLOCK",
-                    blockxml:
-                        '<block type="text_trim">\n          <value name="TEXT">\n            <shadow type="text">\n              <field name="TEXT">abc</field>\n            </shadow>\n          </value>\n        </block>',
-                    type: "text_trim"
-                },
-                {
-                    kind: "BLOCK",
-                    blockxml:
-                        '<block type="text_print">\n          <value name="TEXT">\n            <shadow type="text">\n              <field name="TEXT">abc</field>\n            </shadow>\n          </value>\n        </block>',
-                    type: "text_print"
-                },
-                {
-                    kind: "BLOCK",
-                    blockxml:
-                        '<block type="text_prompt_ext">\n          <value name="TEXT">\n            <shadow type="text">\n              <field name="TEXT">abc</field>\n            </shadow>\n          </value>\n        </block>',
-                    type: "text_prompt_ext"
-                }
-            ],
-            id: "catText",
-            colour: "#ffd500",
-            name: "Text"
-        },
+        }
+        // {
+        //     kind: "CATEGORY",
+        //     contents: [
+        //         {
+        //             kind: "BLOCK",
+        //             blockxml: '<block type="text"></block>',
+        //             type: "text"
+        //         },
+        //         {
+        //             kind: "BLOCK",
+        //             blockxml: '<block type="text_join"></block>',
+        //             type: "text_join"
+        //         },
+        //         {
+        //             kind: "BLOCK",
+        //             blockxml:
+        //                 '<block type="text_append">\n          <value name="TEXT">\n            <shadow type="text"></shadow>\n          </value>\n        </block>',
+        //             type: "text_append"
+        //         },
+        //         {
+        //             kind: "BLOCK",
+        //             blockxml:
+        //                 '<block type="text_length">\n          <value name="VALUE">\n            <shadow type="text">\n              <field name="TEXT">abc</field>\n            </shadow>\n          </value>\n        </block>',
+        //             type: "text_length"
+        //         },
+        //         {
+        //             kind: "BLOCK",
+        //             blockxml:
+        //                 '<block type="text_isEmpty">\n          <value name="VALUE">\n            <shadow type="text">\n              <field name="TEXT"></field>\n            </shadow>\n          </value>\n        </block>',
+        //             type: "text_isEmpty"
+        //         },
+        //         {
+        //             kind: "BLOCK",
+        //             blockxml:
+        //                 '<block type="text_indexOf">\n          <value name="VALUE">\n            <block type="variables_get">\n              <field name="VAR">text</field>\n            </block>\n          </value>\n          <value name="FIND">\n            <shadow type="text">\n              <field name="TEXT">abc</field>\n            </shadow>\n          </value>\n        </block>',
+        //             type: "text_indexOf"
+        //         },
+        //         {
+        //             kind: "BLOCK",
+        //             blockxml:
+        //                 '<block type="text_charAt">\n          <value name="VALUE">\n            <block type="variables_get">\n              <field name="VAR">text</field>\n            </block>\n          </value>\n        </block>',
+        //             type: "text_charAt"
+        //         },
+        //         {
+        //             kind: "BLOCK",
+        //             blockxml:
+        //                 '<block type="text_getSubstring">\n          <value name="STRING">\n            <block type="variables_get">\n              <field name="VAR">text</field>\n            </block>\n          </value>\n        </block>',
+        //             type: "text_getSubstring"
+        //         },
+        //         {
+        //             kind: "BLOCK",
+        //             blockxml:
+        //                 '<block type="text_changeCase">\n          <value name="TEXT">\n            <shadow type="text">\n              <field name="TEXT">abc</field>\n            </shadow>\n          </value>\n        </block>',
+        //             type: "text_changeCase"
+        //         },
+        //         {
+        //             kind: "BLOCK",
+        //             blockxml:
+        //                 '<block type="text_trim">\n          <value name="TEXT">\n            <shadow type="text">\n              <field name="TEXT">abc</field>\n            </shadow>\n          </value>\n        </block>',
+        //             type: "text_trim"
+        //         },
+        //         {
+        //             kind: "BLOCK",
+        //             blockxml:
+        //                 '<block type="text_print">\n          <value name="TEXT">\n            <shadow type="text">\n              <field name="TEXT">abc</field>\n            </shadow>\n          </value>\n        </block>',
+        //             type: "text_print"
+        //         },
+        //         {
+        //             kind: "BLOCK",
+        //             blockxml:
+        //                 '<block type="text_prompt_ext">\n          <value name="TEXT">\n            <shadow type="text">\n              <field name="TEXT">abc</field>\n            </shadow>\n          </value>\n        </block>',
+        //             type: "text_prompt_ext"
+        //         }
+        //     ],
+        //     id: "catText",
+        //     colour: "#ffd500",
+        //     name: "Text"
+        // },
         // {
         //     kind: "CATEGORY",
         //     contents: [
@@ -918,190 +575,97 @@ export const toolbox = {
         //     colour: "20",
         //     name: "Color"
         // },
-        {
-            kind: "SEP"
-        },
-        {
-            kind: "CATEGORY",
-            id: "catVariables",
-            colour: "#ff8c1a",
-            custom: "VARIABLE",
-            name: "Variables"
-        },
-        {
-            kind: "CATEGORY",
-            contents: [
-                {
-                    kind: "BLOCK",
-                    blockxml:
-                        '<block type="lists_create_with">\n          <mutation items="0"></mutation>\n        </block>',
-                    type: "lists_create_with"
-                },
-                {
-                    kind: "BLOCK",
-                    blockxml: '<block type="lists_create_with"></block>',
-                    type: "lists_create_with"
-                },
-                {
-                    kind: "BLOCK",
-                    blockxml:
-                        '<block type="lists_repeat">\n          <value name="NUM">\n            <shadow type="math_number">\n              <field name="NUM">5</field>\n            </shadow>\n          </value>\n        </block>',
-                    type: "lists_repeat"
-                },
-                {
-                    kind: "BLOCK",
-                    blockxml: '<block type="lists_length"></block>',
-                    type: "lists_length"
-                },
-                {
-                    kind: "BLOCK",
-                    blockxml: '<block type="lists_isEmpty"></block>',
-                    type: "lists_isEmpty"
-                },
-                {
-                    kind: "BLOCK",
-                    blockxml:
-                        '<block type="lists_indexOf">\n          <value name="VALUE">\n            <block type="variables_get">\n              <field name="VAR">list</field>\n            </block>\n          </value>\n        </block>',
-                    type: "lists_indexOf"
-                },
-                {
-                    kind: "BLOCK",
-                    blockxml:
-                        '<block type="lists_getIndex">\n          <value name="VALUE">\n            <block type="variables_get">\n              <field name="VAR">list</field>\n            </block>\n          </value>\n        </block>',
-                    type: "lists_getIndex"
-                },
-                {
-                    kind: "BLOCK",
-                    blockxml:
-                        '<block type="lists_setIndex">\n          <value name="LIST">\n            <block type="variables_get">\n              <field name="VAR">list</field>\n            </block>\n          </value>\n        </block>',
-                    type: "lists_setIndex"
-                },
-                {
-                    kind: "BLOCK",
-                    blockxml:
-                        '<block type="lists_getSublist">\n          <value name="LIST">\n            <block type="variables_get">\n              <field name="VAR">list</field>\n            </block>\n          </value>\n        </block>',
-                    type: "lists_getSublist"
-                },
-                {
-                    kind: "BLOCK",
-                    blockxml:
-                        '<block type="lists_split">\n          <value name="DELIM">\n            <shadow type="text">\n              <field name="TEXT">,</field>\n            </shadow>\n          </value>\n        </block>',
-                    type: "lists_split"
-                },
-                {
-                    kind: "BLOCK",
-                    blockxml: '<block type="lists_sort"></block>',
-                    type: "lists_sort"
-                }
-            ],
-            id: "catLists",
-            colour: "#9966ff",
-            name: "Lists"
-        },
-        {
-            kind: "CATEGORY",
-            id: "catFunctions",
-            colour: "#ff6680",
-            custom: "PROCEDURE",
-            name: "Functions"
-        }
+        // {
+        //     kind: "SEP"
+        // },
+        // {
+        //     kind: "CATEGORY",
+        //     id: "catVariables",
+        //     colour: "#ff8c1a",
+        //     custom: "VARIABLE",
+        //     name: "Variables"
+        // },
+        // {
+        //     kind: "CATEGORY",
+        //     contents: [
+        //         {
+        //             kind: "BLOCK",
+        //             blockxml:
+        //                 '<block type="lists_create_with">\n          <mutation items="0"></mutation>\n        </block>',
+        //             type: "lists_create_with"
+        //         },
+        //         {
+        //             kind: "BLOCK",
+        //             blockxml: '<block type="lists_create_with"></block>',
+        //             type: "lists_create_with"
+        //         },
+        //         {
+        //             kind: "BLOCK",
+        //             blockxml:
+        //                 '<block type="lists_repeat">\n          <value name="NUM">\n            <shadow type="math_number">\n              <field name="NUM">5</field>\n            </shadow>\n          </value>\n        </block>',
+        //             type: "lists_repeat"
+        //         },
+        //         {
+        //             kind: "BLOCK",
+        //             blockxml: '<block type="lists_length"></block>',
+        //             type: "lists_length"
+        //         },
+        //         {
+        //             kind: "BLOCK",
+        //             blockxml: '<block type="lists_isEmpty"></block>',
+        //             type: "lists_isEmpty"
+        //         },
+        //         {
+        //             kind: "BLOCK",
+        //             blockxml:
+        //                 '<block type="lists_indexOf">\n          <value name="VALUE">\n            <block type="variables_get">\n              <field name="VAR">list</field>\n            </block>\n          </value>\n        </block>',
+        //             type: "lists_indexOf"
+        //         },
+        //         {
+        //             kind: "BLOCK",
+        //             blockxml:
+        //                 '<block type="lists_getIndex">\n          <value name="VALUE">\n            <block type="variables_get">\n              <field name="VAR">list</field>\n            </block>\n          </value>\n        </block>',
+        //             type: "lists_getIndex"
+        //         },
+        //         {
+        //             kind: "BLOCK",
+        //             blockxml:
+        //                 '<block type="lists_setIndex">\n          <value name="LIST">\n            <block type="variables_get">\n              <field name="VAR">list</field>\n            </block>\n          </value>\n        </block>',
+        //             type: "lists_setIndex"
+        //         },
+        //         {
+        //             kind: "BLOCK",
+        //             blockxml:
+        //                 '<block type="lists_getSublist">\n          <value name="LIST">\n            <block type="variables_get">\n              <field name="VAR">list</field>\n            </block>\n          </value>\n        </block>',
+        //             type: "lists_getSublist"
+        //         },
+        //         {
+        //             kind: "BLOCK",
+        //             blockxml:
+        //                 '<block type="lists_split">\n          <value name="DELIM">\n            <shadow type="text">\n              <field name="TEXT">,</field>\n            </shadow>\n          </value>\n        </block>',
+        //             type: "lists_split"
+        //         },
+        //         {
+        //             kind: "BLOCK",
+        //             blockxml: '<block type="lists_sort"></block>',
+        //             type: "lists_sort"
+        //         }
+        //     ],
+        //     id: "catLists",
+        //     colour: "#9966ff",
+        //     name: "Lists"
+        // },
+        // {
+        //     kind: "CATEGORY",
+        //     id: "catFunctions",
+        //     colour: "#ff6680",
+        //     custom: "PROCEDURE",
+        //     name: "Functions"
+        // }
     ],
     id: "toolbox",
     style: "display: none"
 };
-// export const toolbox2 = {
-//     kind: "flyoutToolbox",
-//     contents: [
-//         {
-//             kind: "block",
-//             type: "turn"
-//         },
-//         {
-//             kind: "block",
-//             type: "look"
-//         },
-//         {
-//             kind: "block",
-//             type: "move",
-//             inputs: {
-//                 NAME: {
-//                     shadow: {
-//                         type: "math_number",
-//                         fields: {
-//                             NUM: 1
-//                         }
-//                     }
-//                 }
-//             }
-//         },
-//         {
-//             kind: "block",
-//             type: "increment",
-//             inputs: {
-//                 NAME: {
-//                     shadow: {
-//                         type: "math_number",
-//                         fields: {
-//                             NUM: 1
-//                         }
-//                     }
-//                 }
-//             }
-//         },
-//         {
-//             kind: "block",
-//             type: "on"
-//         },
-//         {
-//             kind: "block",
-//             type: "set",
-//             inputs: {
-//                 NAME: {
-//                     shadow: {
-//                         type: "math_number",
-//                         fields: {
-//                             NUM: 1
-//                         }
-//                     }
-//                 }
-//             }
-//         },
-//         {
-//             kind: "block",
-//             type: "iteration"
-//         }
-//         // {
-//         //     "kind": "block",
-//         //     "type": "iteration_onevery"
-//         // },
-//         // {
-//         //     kind: "block",
-//         //     type: "create_ant",
-//         //     inputs: {
-//         //         X: {
-//         //             shadow: {
-//         //                 type: "math_number",
-//         //                 fields: {
-//         //                     NUM: 1
-//         //                 }
-//         //             }
-//         //         },
-//         //         Y: {
-//         //             shadow: {
-//         //                 type: "math_number",
-//         //                 fields: {
-//         //                     NUM: 1
-//         //                 }
-//         //             }
-//         //         }
-//         //     }
-//         // }
-//         // {
-//         //     "kind": "block",
-//         //     "type": "create_ant_on_ant"
-//         // },
-//     ]
-// };
 
 export const defaultBlockly = {
     blocks: {

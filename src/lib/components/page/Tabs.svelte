@@ -20,7 +20,7 @@
         renderer,
         video = $bindable()
     }: {
-        iterate: () => void;
+        iterate: (iterations: number) => void;
         game: Game;
         renderer: Renderer;
         video: any;
@@ -77,22 +77,22 @@
         <input
             type="range"
             min="0"
-            max="6"
+            max="7"
             step=".1"
             bind:value={sliderValue}
             class="w-full"
             oninput={() => (game.gameState.iterationsPerTick = getsliderValue())}
         />
-        <div class="w-32 text-center">
-            <span>{formatIterations(getsliderValue())}</span>
-            <span class="font-bold">I/t</span>
+        <div class="w-64 text-center">
+            <span>Speed:</span>
+            <span class="font-bold tabular-nums">{formatIterations(getsliderValue())}</span>
         </div>
     </div>
 </div>
 {@render controls()}
 <!-- <div class="flex gap-2 border-b border-violet-200 text-lg dark:border-violet-500"> -->
-<div class="flex gap-2 text-lg">
-    <!-- {#each tabs as [name] (name)}
+<!-- <div class="flex gap-2 text-lg">
+    {#each tabs as [name] (name)}
         <button
             class={[
                 "cursor-pointer rounded-t border-b-2 bg-violet-200 px-3 py-1 transition-colors hover:border-violet-600 hover:bg-violet-300 dark:bg-violet-900 dark:hover:border-violet-50 dark:hover:bg-violet-800",
@@ -102,8 +102,8 @@
         >
             <p>{name}</p>
         </button>
-    {/each} -->
-</div>
+    {/each}
+</div> -->
 {@render tabs.get(selectedTab)?.()}
 
 {#snippet controls()}
@@ -120,7 +120,9 @@
             }}
             hotkey="R"
         />
-        <IconButton icon="advance_frame" onclick={oneTick} hotkey="T" />
+        {#if game.settings.advancedMode}
+            <IconButton icon="advance_frame" onclick={oneTick} hotkey="T" />
+        {/if}
     </div>
 {/snippet}
 
@@ -158,12 +160,6 @@
     </div>
 {/snippet}
 
-{#snippet settings()}
-    <div class="flex gap-3">
-        <p>WIP</p>
-    </div>
-{/snippet}
-
 {#snippet about()}
     <!-- <p>They're my ants! Not yours!</p> -->
     <!-- <p>version 2.0.0 alpha 2</p> -->
@@ -181,7 +177,3 @@
     <pre id="code" class="text-xs"></pre>
     <!-- <Button onclick={() => alert("hey")} hotkey="P">Click me please</Button> -->
 {/snippet}
-
-<!-- {#snippet tiles()} -->
-<!-- <Tiles {game} {game.gameState} {workspace} {renderer} /> -->
-<!-- {/snippet} -->

@@ -54,16 +54,10 @@
               ];
     }
 
-    // const game: Game = {
-    //     board: new Board(),
-    //     ants: new SvelteSet(),
-    //     tileTriggers: new Map(),
-    //     onStart: () => {},
-    //     onEachIteration: () => {},
-    //     getState: () => game.gameState
-    // };
-
     const game = new Game();
+
+    // Blockly inserts this at the start of every generated loop iteration.
+    javascriptGenerator.INFINITE_LOOP_TRAP = "__checkUserCodeDeadline();\n";
 
     let saves: PhotoSave[] = sync("ant-saves", []);
 
@@ -79,25 +73,6 @@
     function addAnt(x: number, y: number) {
         game.ants.add(new Ant({ x, y }));
     }
-
-    // function cloneAnt(ant: Ant) {
-    //     if (game.ants.size < antLimit) {
-    //         // 65k limit
-    //         // TODO: Make this a setting
-    //         game.ants.add(new Ant({ x: ant.position.x, y: ant.position.y }));
-    //     }
-    // }
-
-    // function killAnt(ant: Ant) {
-    //     game.ants.delete(ant);
-    // }
-
-    // Uncaught Svelte error: missing_context
-    // Context was not set in a parent component
-    // https://svelte.dev/e/missing_context
-    // (personally I think this is a bug in svelte)
-    // setWorkspace(null);
-    // setRenderer(null);
 
     function resetWorkspace() {
         if (
@@ -129,8 +104,10 @@
             let b = block;
             b.json.type = type;
 
-            let args = block.json.args0 as any[];
-            let inputs: Record<string, unknown> = {};
+            const args = block.json.args0 as
+                | Array<{ type: string; name?: string; check?: string }>
+                | undefined;
+            const inputs: Record<string, unknown> = {};
 
             const toolboxItem = {
                 kind: "BLOCK",
@@ -140,24 +117,21 @@
 
             if (args) {
                 for (const arg of args) {
-                    const { name, check, shadow } = arg;
-                    let type = "math_number";
-
-                    if (name) {
-                        inputs[name] = {
+                    if (arg.type === "input_value" && arg.name && arg.check === "Number") {
+                        inputs[arg.name] = {
                             shadow: {
-                                type, // TODO: Use check for this
+                                type: "math_number",
                                 fields: {
                                     NUM: 1
                                 }
-                                // fields: shadow?.fields
                             }
                         };
                     }
                 }
 
-                // toolboxItem["inputs"] = inputs;
-                console.log(toolboxItem);
+                if (Object.keys(inputs).length > 0) {
+                    Object.assign(toolboxItem, { inputs });
+                }
             }
 
             toolbox.contents[0].contents?.push(toolboxItem);
@@ -213,23 +187,26 @@
                 }
                 code = newCode;
                 updateAutoSave();
-                // console.log("reset!");
-                // console.log(code);
 
                 // Debug
                 // TODO: Debug in dev environment?
                 if (dev) {
-                    if (document.getElementById("code")) {
-                        document.getElementById("code")!.innerText = code;
-                    }
+                    // console.log("reset!");
+                    console.log(code);
+                    // if (document.getElementById("code")) {
+                    // document.getElementById("code")!.innerText = code;
+                    // }
                 }
 
-                game.tileTriggers.clear();
+                // game.tileTriggers.clear();
                 game.tileTriggers.length = 0;
                 Game.restart();
                 try {
                     // a better eval, but still not sandboxed
-                    new Function("game", code)(game);
+                    new Function("game", "__checkUserCodeDeadline", code)(
+                        game,
+                        game.checkUserCodeDeadline
+                    );
                 } catch (err) {
                     console.error("eval error", err);
                 }
@@ -339,7 +316,14 @@
             }
             renderer!.render();
 
-            window.requestAnimationFrame(frame);
+            if (game.settings.reduceMotion) {
+                // FPS limiter (10fps)
+                setTimeout(() => {
+                    window.requestAnimationFrame(frame);
+                }, 1000 / 10);
+            } else {
+                window.requestAnimationFrame(frame);
+            }
         }
 
         return () => {
@@ -418,7 +402,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
     <link
-        href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:ital,wght@0,200..800;1,200..800&display=swap"
         rel="stylesheet"
     />
 </svelte:head>
@@ -428,36 +412,45 @@
         src={zelosAntLogo}
         alt="Zelos Ant Logo"
         width={164 / DPR}
-        class="relative bottom-1"
+        class="relative bottom-1 brightness-150"
         style="image-rendering: pixelated;"
     />
 
-    <button
-        data-umami-event="save"
-        onclick={() => {
-            if (renderer && workspace && canvas) {
-                saveSnapshot(saves, renderer, workspace, canvas);
-            }
-        }}>Save</button
-    >
-    <button onclick={() => (game.showSaves = !game.showSaves)}>Load</button>
+    <button onclick={resetWorkspace}>New</button>
+    {#if game.settings.advancedMode}
+        <button
+            data-umami-event="save"
+            onclick={() => {
+                if (renderer && workspace && canvas) {
+                    saveSnapshot(saves, renderer, workspace, canvas);
+                }
+            }}>Save</button
+        >
+        <button onclick={() => (game.showSaves = !game.showSaves)}>Load</button>
+    {/if}
     <!-- <button onclick={() => (game.showSaves = !game.showSaves)}>Featured</button> -->
-    <button onclick={resetWorkspace}>Reset</button>
+    <!-- <button onclick={() => (game.showSettings = !game.showSettings)}>Settings</button> -->
     <button onclick={() => (game.showAbout = true)}>About</button>
     <!-- <p class="opacity-75">Saves & Recording is currently disabled</p> -->
     <div class="mr-5 ml-auto flex gap-9 tabular-nums">
-        <span>{game.gameState.iterations.toLocaleString()} iterations</span>
+        <span>{game.gameState.iterations.toLocaleString()} steps</span>
         <!-- <span>
             {game.ants.size.toLocaleString()}
             {game.ants.size === 1 ? "ant" : "ants"} moving around
         </span> -->
-        <span>
-            {fps > 60 ? ">60fps" : `${fps.toPrecision(2)}fps`}
-        </span>
+        {#if game.settings.advancedMode}
+            <span>
+                {fps > 60 ? ">60fps" : `${fps.toPrecision(2)}fps`}
+            </span>
+        {:else}
+            {#if fps < 60}
+                <span class="text-amber-500">detected slowdown... lower your speed!</span>
+            {/if}
+        {/if}
     </div>
 
     {#if game.gameState.fps > 1000 && game.gameState.paused}
-        <span class="text-red-500">Anti-Freeze: Game has auto paused</span>
+        <span class="text-red-500 font-bold">Anti-Freeze: Ants have auto paused</span>
     {/if}
     {#if sharedSave}
         <div class="ml-auto flex items-center gap-3 px-2">
@@ -473,18 +466,11 @@
 </header>
 <main class="flex">
     <div class="grow">
-        <div class="absolute bottom-0 left-0 w-full">
-            {#if workspace && renderer}
-                <!-- This prop drilling is unavoidable dont bother -->
-                <!-- 2026 TODO: IS IT DOE??????????? -->
-                <Tiles {workspace} {renderer} />
-            {/if}
-        </div>
         <div class="relative h-full w-full">
             <div
                 class="w-full"
                 id="blockly"
-                style="height: {innerHeight.current! - headerHeight - 115}px;"
+                style="height: {innerHeight.current! - headerHeight - 10}px;"
                 {@attach blocklyContainer}
             ></div>
             {#if game.showSaves}
@@ -494,6 +480,58 @@
                     style="height: {innerHeight.current! - headerHeight - 24}px;"
                 >
                     <Saves {game} {renderer} {workspace} {saves} />
+                </div>
+            {/if}
+            {#if game.showSettings}
+                <div
+                    transition:fade={{ duration: 100 }}
+                    class="absolute top-0 left-0 z-9999 w-full overflow-auto bg-violet-100/60 dark:bg-black/70 px-6 py-3 backdrop-blur-xs"
+                    style="height: {innerHeight.current! - headerHeight - 24}px;"
+                >
+                    <p class="text-4xl font-bold">Settings</p>
+                    <br />
+                    <input
+                        type="checkbox"
+                        bind:checked={game.settings.advancedMode}
+                        id="advancedMode"
+                    />
+                    <label for="advancedMode" class="font-bold">
+                        Advanced mode<br /><span class="font-normal italic"
+                            >Enables additional features like Saves, Variables, and Functions. Also
+                            removes Tile limits. This can be overwhelming so keep this off until
+                            you're comfortable with the basics.</span
+                        >
+                    </label>
+                    <br />
+                    <br />
+                    <input type="checkbox" bind:checked={game.settings.loop} id="loop" />
+                    <label for="loop" class="font-bold">
+                        Loop<br /><span class="font-normal italic"
+                            >Lets ants wrap around the screen. Can create some cool stuff!</span
+                        >
+                    </label>
+                    <br />
+                    <br />
+                    <input type="checkbox" bind:checked={game.settings.noTimeout} id="noTimeout" />
+                    <label for="noTimeout" class="font-bold">
+                        No Timeout<br /><span class="font-normal italic"
+                            >Disables the 1-second timeout for loops. Causes annoying freezes if
+                            you're not careful with for/while loops.</span
+                        >
+                    </label>
+                    <br />
+                    <br />
+                    <input
+                        type="checkbox"
+                        bind:checked={game.settings.reduceMotion}
+                        id="reduceMotion"
+                    />
+                    <label for="reduceMotion" class="font-bold">
+                        Reduce Motion <br /><span class="font-normal italic"
+                            >Reduces the amount of times the simulation is updated, and removes
+                            animations.
+                        </span>
+                    </label>
                 </div>
             {/if}
         </div>
@@ -520,8 +558,9 @@
             </video>
             <!-- <img src={video} alt="Recorded gif" class="max-w-full" /> -->
         {/if}
-        {#if renderer}
+        {#if workspace && renderer}
             <Controls {iterate} {game} {renderer} bind:video />
+            <Tiles {workspace} {renderer} />
         {/if}
     </div>
 </main>
@@ -576,16 +615,17 @@
 
                     <div>
                         <span
-                            >If you want to contribute / report issues, visit the <Link
+                            >Currently this site is only in English. If you want to contribute /
+                            report issues, visit the <Link
                                 href="https://github.com/Zolo101/zelos_ant">GitHub repository</Link
-                            >, or <Link href="https://zelo.dev/about">email me!</Link> &lt;3</span
+                            >, or <Link href="mailto:hello@zelo.dev">email me!</Link> &lt;3</span
                         >
                     </div>
 
-                    <div>
+                    <!-- <div>
                         <span>Check out more cool stuff on</span>
                         <Link href="https://zelo.dev/">my website!</Link>
-                    </div>
+                    </div> -->
                 </div>
                 <!-- <p class="text-center text-xs">They're MY ants, not yours</p> -->
             </div>
