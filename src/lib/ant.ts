@@ -1,4 +1,4 @@
-import { height, width } from "./stores.svelte";
+import { BOARD_HEIGHT, BOARD_WIDTH } from "./board";
 
 enum AntRotation {
     North = 0,
@@ -61,11 +61,11 @@ class Ant {
         // 1 @ 799 == 0
         // 2 @ 799 == 1
 
-        if (this.position.x < 0) this.position.x += width;
-        if (this.position.x >= width) this.position.x -= width;
+        if (this.position.x < 0) this.position.x += BOARD_WIDTH;
+        if (this.position.x >= BOARD_WIDTH) this.position.x -= BOARD_WIDTH;
 
-        if (this.position.y < 0) this.position.y += height;
-        if (this.position.y >= height) this.position.y -= height;
+        if (this.position.y < 0) this.position.y += BOARD_HEIGHT;
+        if (this.position.y >= BOARD_HEIGHT) this.position.y -= BOARD_HEIGHT;
     }
 }
 

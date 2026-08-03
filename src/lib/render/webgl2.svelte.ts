@@ -23,21 +23,31 @@ export default class Renderer {
     programInfo: ProgramInfo;
     tileTexture: WebGLTexture;
     colours: WebGLTexture;
-    tiles: Uint8ClampedArray;
+    private tileData: Uint8ClampedArray;
+    private tilesDirty = true;
     bufferInfo: BufferInfo;
+
+    get tiles() {
+        return this.tileData;
+    }
+
+    set tiles(tiles: Uint8ClampedArray) {
+        this.tileData = tiles;
+        this.tilesDirty = true;
+    }
 
     constructor(gl: WebGL2RenderingContext) {
         this.gl = gl;
         const program = createProgram(gl, [vertexShader, fragmentShader]);
         this.programInfo = createProgramInfoFromProgram(gl, program);
-        this.tiles = new Uint8ClampedArray(width * height);
+        this.tileData = new Uint8ClampedArray(width * height);
         this.bufferInfo = primitives.createXYQuadBufferInfo(gl);
 
         this.tileTexture = createTexture(gl, {
             mag: gl.NEAREST,
             min: gl.NEAREST,
             internalFormat: gl.R8,
-            src: this.tiles
+            src: this.tileData
         });
 
         this.colours = createTexture(gl, {
@@ -67,9 +77,24 @@ export default class Renderer {
     render() {
         const [matrix, textureMatrix] = [m4.identity(), m4.identity()];
 
-        setTextureFromArray(this.gl, this.tileTexture, this.tiles, {
-            internalFormat: this.gl.R8
-        });
+        if (this.tilesDirty) {
+            // Storage was allocated when the texture was created. Updating it in
+            // place avoids making TWGL re-specify the texture every frame.
+            this.gl.bindTexture(this.gl.TEXTURE_2D, this.tileTexture);
+            this.gl.pixelStorei(this.gl.UNPACK_ALIGNMENT, 1);
+            this.gl.texSubImage2D(
+                this.gl.TEXTURE_2D,
+                0,
+                0,
+                0,
+                width,
+                height,
+                this.gl.RED,
+                this.gl.UNSIGNED_BYTE,
+                this.tileData
+            );
+            this.tilesDirty = false;
+        }
         const uniforms = {
             matrix,
             textureMatrix,

@@ -225,6 +225,7 @@
                 }
 
                 game.tileTriggers.clear();
+                game.tileTriggers.length = 0;
                 Game.restart();
                 try {
                     // a better eval, but still not sandboxed
@@ -368,14 +369,26 @@
         return () => mediaQuery.removeEventListener("change", updateDpr);
     });
 
-    function iterate() {
-        for (const ant of game.ants) {
-            game.onEachIteration(ant);
+    function iterate(iterations: number) {
+        // Cache non-reactive hot-loop inputs once per frame. Blockly changes can
+        // only arrive between frames, so the values remain valid for this batch.
+        // TODO: I don't like this const stuff, feels redundant
+        const { ants, board, onEachIteration, tileTriggers } = game;
+        const { cells, width: boardWidth } = board;
+        board.setTileCount(tiles.length);
 
-            const cell = game.board.getCell(ant.position.x, ant.position.y);
+        for (let i = 0; i < iterations; i++) {
+            for (const ant of ants) {
+                // TODO: Figure out how to make the iterations block work without slowing down the loop
+                if (!game.runUserCode(onEachIteration, ant, 0)) return;
 
-            // Attempt to run the trigger function if exists
-            game.tileTriggers.get(cell)?.(ant);
+                const { x, y } = ant.position;
+                const cell = cells[y * boardWidth + x];
+
+                // Attempt to run the trigger function if it exists.
+                const tileTrigger = tileTriggers[cell];
+                if (tileTrigger && !game.runUserCode(tileTrigger, ant)) return;
+            }
         }
     }
 

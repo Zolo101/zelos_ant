@@ -4,9 +4,11 @@ import Board from "./board";
 
 export default class Game {
     board = new Board();
-    ants = new SvelteSet<Ant>();
-    // TODO: Switched to SvelteMap, is this a good idea?
-    tileTriggers = new SvelteMap<number, (ant: Ant) => void>();
+    // TODO: SvelteSet and SvelteMap hurts performance
+    ants = new Set<Ant>();
+    // TODO: Compile this into a list
+    // tileTriggers = new Map<number, (ant: Ant) => void>();
+    tileTriggers: Array<(ant: Ant) => void> = [];
     onStart = () => {};
     onEachIteration = (ant: Ant) => {};
     gameState = $state({

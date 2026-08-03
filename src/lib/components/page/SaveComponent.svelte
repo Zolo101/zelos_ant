@@ -35,7 +35,7 @@
     };
 
     const screenScale = 0.24;
-    const screenDimensions = $derived((800 / devicePixelRatio.current!) * screenScale);
+    const screenDimensions = $derived((640 / devicePixelRatio.current!) * screenScale);
 
     let justShared = $state(false);
     let shareText = $derived(justShared ? "Copied!" : "Share");

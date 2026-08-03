@@ -16,9 +16,10 @@ import {
     // QUALITY_VERY_LOW
 } from "mediabunny";
 import Game from "./Game.svelte";
+import { BOARD_HEIGHT, BOARD_WIDTH } from "./board";
 
-export const width = $state(800);
-export const height = $state(800);
+export const width = $state(BOARD_WIDTH);
+export const height = $state(BOARD_HEIGHT);
 
 export const tiles: Tile[] = $state([]);
 
@@ -49,23 +50,23 @@ export type Tile = {
 let output: Output<MkvOutputFormat, BufferTarget> | null = null;
 let recordingWriteQueue: Promise<void> = Promise.resolve();
 
-export function tick(game: Game, renderer: Renderer, iterate: () => void) {
+export function tick(game: Game, renderer: Renderer, iterate: (iterations: number) => void) {
     game.gameState.updateInProgress = true;
 
     const pn1 = performance.now();
+    const iterations = game.gameState.iterationsPerTick;
 
     try {
-        for (let i = 0; i < game.gameState.iterationsPerTick; i++) {
-            iterate();
-            game.gameState.iterations++;
-        }
+        iterate(iterations);
+        // Keep the counter reactive for the UI, but only notify Svelte once per
+        // frame rather than once per simulated step.
+        game.gameState.iterations += iterations;
     } catch (e) {
         console.error(e);
         game.gameState.paused = true;
-        alert("Maximum number of ants reached. Please restart the game.");
+        alert("An error has occurred. Please restart the game.");
     }
 
-    // game.gameState.iterations += game.gameState.iterationsPerTick;
     renderer.tiles = game.board.cells;
 
     game.gameState.updateInProgress = false;

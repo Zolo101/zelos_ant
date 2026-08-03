@@ -1,11 +1,14 @@
-import Ant from "./ant";
-import { tiles } from "./stores.svelte";
+import type Ant from "./ant";
+
+export const BOARD_WIDTH = 640;
+export const BOARD_HEIGHT = 640;
 
 export default class Board {
     // width: number;
     // height: number;
-    width = 800;
-    height = 800;
+    width = BOARD_WIDTH;
+    height = BOARD_HEIGHT;
+    tileCount = 1;
     cells: Uint8ClampedArray;
     image: Uint8ClampedArray;
 
@@ -30,9 +33,13 @@ export default class Board {
         this.cells[y * this.width + x] = value;
     }
 
+    setTileCount(tileCount: number) {
+        this.tileCount = Math.max(1, tileCount);
+    }
+
     incrementCell(ant: Ant, by: number = 1) {
         const id = this.getCell(ant.position.x, ant.position.y);
-        this.setCell(ant.position.x, ant.position.y, (id + by) % tiles.length);
+        this.setCell(ant.position.x, ant.position.y, (id + by) % this.tileCount);
     }
 
     // output() {
