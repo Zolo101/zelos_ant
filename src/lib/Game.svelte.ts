@@ -1,5 +1,6 @@
 import Ant from "./ant";
 import Board from "./board";
+import sync from "./sync.svelte";
 
 class UserCodeTimeoutError extends Error {
     constructor() {
@@ -35,7 +36,7 @@ export default class Game {
     showSettings = $state(false);
     showAbout = $state(false);
 
-    settings = $state({
+    settings = sync("settings", {
         advancedMode: false,
         loop: true,
         noTimeout: false,
