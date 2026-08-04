@@ -262,13 +262,53 @@ export const blocks = {
                 }
             ],
             output: "Number",
-            colour: "#35c700"
+            colour: "#59c059"
         },
         tooltip: () => {
             return `The tile number the ant is on.`;
         },
         onRun: () => {
             return [`game.board.getCell(ant.position.x, ant.position.y)`, Order.FUNCTION_CALL];
+        }
+    },
+    direction: {
+        json: {
+            type: "direction",
+            tooltip: "",
+            helpUrl: "",
+            message0: "Looking %1",
+            args0: [
+                {
+                    type: "field_dropdown",
+                    name: "Directions",
+                    options: [
+                        ["north", "North"],
+                        ["east", "East"],
+                        ["south", "South"],
+                        ["west", "West"]
+                    ]
+                }
+            ],
+            output: "Boolean",
+            colour: "#59c059"
+        },
+        tooltip: () => {
+            return `The direction the ant is facing.`;
+        },
+        onRun: (block) => {
+            const dropdown_directions = block.getFieldValue("Directions");
+            switch (dropdown_directions) {
+                case "North":
+                    return [`ant.rotation === 0`, Order.EQUALITY];
+                case "East":
+                    return [`ant.rotation === 1`, Order.EQUALITY];
+                case "South":
+                    return [`ant.rotation === 2`, Order.EQUALITY];
+                case "West":
+                    return [`ant.rotation === 3`, Order.EQUALITY];
+                default:
+                    return ["false", Order.ATOMIC];
+            }
         }
     }
     // iterations: {
