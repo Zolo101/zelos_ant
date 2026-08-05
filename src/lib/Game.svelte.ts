@@ -1,5 +1,6 @@
 import Ant from "./ant";
 import Board from "./board";
+import type Renderer from "./render/webgl2.svelte";
 import sync from "./sync.svelte";
 
 class UserCodeTimeoutError extends Error {
@@ -43,6 +44,7 @@ export default class Game {
         reduceMotion: false
     });
 
+    // TODO: Won't be needed when we move to web workers
     private userCodeDeadline = Infinity;
 
     checkUserCodeDeadline = () => {
@@ -78,7 +80,7 @@ export default class Game {
     }
 
     // TODO: Should this be static?
-    static restart() {
+    static restart(renderer: Renderer) {
         const game = Game.instance;
         game.board.clear();
         game.ants.clear();
@@ -86,5 +88,9 @@ export default class Game {
         game.gameState.iterations = 0;
         game.runUserCode(game.onStart);
         game.ants.add(new Ant({ x: game.board.width / 2, y: game.board.height / 2 }));
+
+        // TODO: Make a function for refreshing the screen or something
+        // refresh screen
+        renderer.tiles = game.board.cells;
     }
 }

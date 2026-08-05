@@ -217,5 +217,5 @@ export function loadSnapshot(save: Save, renderer: Renderer, workspace: Workspac
 
     serialization.workspaces.load(save.blockly, workspace);
     renderer.updateColours();
-    Game.restart();
+    Game.restart(renderer);
 }

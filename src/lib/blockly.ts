@@ -375,11 +375,11 @@ export const toolbox = {
                     blockxml: '<block type="logic_boolean"></block>',
                     type: "logic_boolean"
                 },
-                {
-                    kind: "BLOCK",
-                    blockxml: '<block type="logic_null"></block>',
-                    type: "logic_null"
-                },
+                // {
+                //     kind: "BLOCK",
+                //     blockxml: '<block type="logic_null"></block>',
+                //     type: "logic_null"
+                // },
                 {
                     kind: "BLOCK",
                     blockxml: '<block type="logic_ternary"></block>',

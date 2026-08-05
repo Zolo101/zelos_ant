@@ -72,12 +72,13 @@
     if (dev) tabs.set("Debug", debug);
 </script>
 
+<!-- Goal: max="7" -->
 <div class="flex flex-col gap-2">
     <div class="flex select-none">
         <input
             type="range"
             min="0"
-            max="7"
+            max="6"
             step=".1"
             bind:value={sliderValue}
             class="w-full"
@@ -116,7 +117,7 @@
         <IconButton
             icon="restart"
             onclick={() => {
-                Game.restart();
+                Game.restart(renderer);
             }}
             hotkey="R"
         />

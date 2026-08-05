@@ -200,9 +200,11 @@
 
                 // game.tileTriggers.clear();
                 game.tileTriggers.length = 0;
-                Game.restart();
+                Game.restart(renderer!);
                 try {
                     // a better eval, but still not sandboxed
+                    // new Function("game", code)(game);
+
                     new Function("game", "__checkUserCodeDeadline", code)(
                         game,
                         game.checkUserCodeDeadline
@@ -260,7 +262,7 @@
 
         renderer = new Renderer(gl2);
 
-        Game.restart();
+        Game.restart(renderer);
 
         renderer.updateColours();
 
@@ -271,7 +273,7 @@
         window.addEventListener("keydown", (e: KeyboardEvent) => {
             switch (e.code) {
                 case "KeyR":
-                    Game.restart();
+                    Game.restart(renderer!);
                     break;
 
                 case "KeyP":
@@ -364,12 +366,14 @@
         for (let i = 0; i < iterations; i++) {
             for (const ant of ants) {
                 // TODO: Figure out how to make the iterations block work without slowing down the loop
+                // onEachIteration(ant, 0);
                 if (!game.runUserCode(onEachIteration, ant, 0)) return;
 
                 const { x, y } = ant.position;
                 const cell = cells[y * boardWidth + x];
 
                 // Attempt to run the trigger function if it exists.
+                // tileTriggers[cell]?.(ant);
                 const tileTrigger = tileTriggers[cell];
                 if (tileTrigger && !game.runUserCode(tileTrigger, ant)) return;
             }
@@ -477,7 +481,6 @@
                 <div
                     transition:fade={{ duration: 100 }}
                     class="absolute top-0 left-0 z-9999 w-full overflow-auto bg-violet-100/60 dark:bg-black/70 px-6 py-3 backdrop-blur-xs"
-                    style="height: {innerHeight.current! - headerHeight - 24}px;"
                 >
                     <Saves {game} {renderer} {workspace} {saves} />
                 </div>
@@ -486,7 +489,6 @@
                 <div
                     transition:fade={{ duration: 100 }}
                     class="absolute top-0 left-0 z-9999 w-full overflow-auto bg-violet-100/60 dark:bg-black/70 px-6 py-3 backdrop-blur-xs"
-                    style="height: {innerHeight.current! - headerHeight - 24}px;"
                 >
                     <p class="text-4xl font-bold">Settings</p>
                     <br />
@@ -572,7 +574,7 @@
     >
         <div class="fixed inset-0 bg-black/75 backdrop-blur-xs"></div>
         <dialog
-            class="static z-10 h-120 w-160 overflow-y-auto rounded-lg bg-taupe-200 p-5 shadow-lg dark:bg-(--dark2)"
+            class="static z-10 h-120 w-160 overflow-y-auto rounded-lg bg-taupe-200 p-5 shadow-lg dark:bg-(--color-dark2)"
             open={game.showAbout}
         >
             <button
