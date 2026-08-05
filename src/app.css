@@ -1,5 +1,13 @@
 @import "tailwindcss";
 
+@theme {
+    --color-primary: var(--color-violet-600);
+    --color-light: var(--color-violet-50);
+    /* --color-dark: oklch(0.13 0.07 298.62); */
+    --color-dark: oklch(9.564% 0.05104 300.124);
+    --color-dark2: color-mix(in oklab, var(--color-dark) 60%, var(--color-violet-950));
+}
+
 :root {
     color-scheme: light dark;
 }
@@ -16,18 +24,12 @@ body {
     /* color: white; */
     /* --blockly-primary-text: black; */
 
-    --primary: var(--color-violet-600);
-    --light: var(--color-violet-50);
-    /* --dark: oklch(0.13 0.07 298.62); */
-    --dark: oklch(9.564% 0.05104 300.124);
-    --dark2: color-mix(in oklab, var(--dark) 60%, var(--color-violet-950));
-
-    background-color: light-dark(var(--light), var(--dark));
-    color: color-mix(in oklab, var(--primary) 10%, currentColor);
+    background-color: light-dark(var(--color-light), var(--color-dark));
+    color: color-mix(in oklab, var(--color-primary) 10%, currentColor);
 }
 
 a {
-    color: color-mix(in oklab, var(--primary) 20%, currentColor);
+    color: color-mix(in oklab, var(--color-primary) 20%, currentColor);
 }
 
 /* Blockly */
@@ -75,15 +77,15 @@ text {
 .blocklySvg {
     background-color: color-mix(
         in oklab,
-        light-dark(var(--light), var(--dark)) 90%,
-        var(--primary)
+        light-dark(var(--color-light), var(--color-dark)) 90%,
+        var(--color-primary)
     );
 }
 
 .blocklyMainBackground {
     stroke: none;
-    /* --blocklyGridPattern: color-mix(in oklab, black 20%, var(--primary)); */
-    /* stroke: color-mix(in oklab, black 90%, var(--primary)); */
+    /* --blocklyGridPattern: color-mix(in oklab, black 20%, var(--color-primary)); */
+    /* stroke: color-mix(in oklab, black 90%, var(--color-primary)); */
 }
 
 .blocklyFlyout,
@@ -123,12 +125,12 @@ text {
 }
 
 .blocklyDropDownDiv {
-    background-color: light-dark(var(--light), var(--dark));
+    background-color: light-dark(var(--color-light), var(--color-dark));
     backdrop-filter: blur(2px);
 }
 
 .fieldColourSliderContainer {
-    color: light-dark(var(--dark), var(--light));
+    color: light-dark(var(--color-dark), var(--color-light));
 }
 
 /* Hat blocks for the events */
