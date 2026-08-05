@@ -85,7 +85,7 @@
 
             updateOnTileBlocks();
             workspace.render();
-            Game.restart(renderer);
+            Game.restart(renderer, tiles.length);
         }
     }
 
@@ -94,7 +94,7 @@
 
         tiles.splice(tiles.indexOf(tile), 1);
         updateOnTileBlocks();
-        Game.restart(renderer);
+        Game.restart(renderer, tiles.length);
     }
 
     const shouldUseLightText = (tile: Tile) => {

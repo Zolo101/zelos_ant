@@ -50,30 +50,13 @@ export type Tile = {
 let output: Output<MkvOutputFormat, BufferTarget> | null = null;
 let recordingWriteQueue: Promise<void> = Promise.resolve();
 
-export function tick(game: Game, renderer: Renderer, iterate: (iterations: number) => void) {
-    game.gameState.updateInProgress = true;
+export function tick(game: Game, renderer: Renderer) {
+    // Upload the current snapshot before its buffer is transferred back to the
+    // worker for reuse. This keeps worker messaging zero-copy in both directions.
+    renderer.render();
+    const stepStarted = game.requestStep(game.gameState.iterationsPerTick);
 
-    const pn1 = performance.now();
-    const iterations = game.gameState.iterationsPerTick;
-
-    try {
-        iterate(iterations);
-        // Keep the counter reactive for the UI, but only notify Svelte once per
-        // frame rather than once per simulated step.
-        game.gameState.iterations += iterations;
-    } catch (e) {
-        console.error(e);
-        game.gameState.paused = true;
-        alert("An error has occurred. Please restart the game.");
-    }
-
-    renderer.tiles = game.board.cells;
-
-    game.gameState.updateInProgress = false;
-
-    const time = performance.now() - pn1;
-
-    if (canvasSource && output && output.state === "started") {
+    if (stepStarted && canvasSource && output && output.state === "started") {
         const source = canvasSource;
         const timestamp = frameCount / 60;
         frameCount++;
@@ -82,13 +65,6 @@ export function tick(game: Game, renderer: Renderer, iterate: (iterations: numbe
             .then(() => source.add(timestamp, 0.0166, { keyFrame: recordingOptions.lossless }))
             .catch((e) => console.error("Error writing frame:", e));
     }
-
-    // 5 seconds timeout
-    if (time > 1000) {
-        game.gameState.paused = true;
-    }
-
-    return time;
 }
 
 export async function startRecording(renderer: Renderer) {
@@ -217,5 +193,5 @@ export function loadSnapshot(save: Save, renderer: Renderer, workspace: Workspac
 
     serialization.workspaces.load(save.blockly, workspace);
     renderer.updateColours();
-    Game.restart(renderer);
+    Game.restart(renderer, tiles.length);
 }

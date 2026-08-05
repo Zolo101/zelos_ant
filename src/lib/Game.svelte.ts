@@ -1,30 +1,10 @@
-import Ant from "./ant";
 import Board from "./board";
 import type Renderer from "./render/webgl2.svelte";
+import type { SimulationRequest, SimulationResponse } from "./simulation-messages";
 import sync from "./sync.svelte";
-
-class UserCodeTimeoutError extends Error {
-    constructor() {
-        super("The program ran for longer than 1 second and was stopped.");
-        this.name = "UserCodeTimeoutError";
-    }
-}
 
 export default class Game {
     board = new Board();
-    // TODO: SvelteSet and SvelteMap hurts performance
-    ants = new Set<Ant>();
-    // TODO: Compile this into a list
-    // tileTriggers = new Map<number, (ant: Ant) => void>();
-    tileTriggers: Array<(ant: Ant) => void> = [];
-    onStart = () => {};
-
-    /**
-     *
-     * @param ant The ant to run the iteration on
-     * @param subIter Ticks are done on N iterations/steps. game.gameState.iterations only increments every tick, not step.
-     */
-    onEachIteration = (ant: Ant, subIter: number) => {};
     gameState = $state({
         updateInProgress: false,
         paused: false,
@@ -40,35 +20,13 @@ export default class Game {
     settings = sync("settings", {
         advancedMode: false,
         loop: true,
-        noTimeout: false,
         reduceMotion: false
     });
 
-    // TODO: Won't be needed when we move to web workers
-    private userCodeDeadline = Infinity;
-
-    checkUserCodeDeadline = () => {
-        if (performance.now() >= this.userCodeDeadline) {
-            throw new UserCodeTimeoutError();
-        }
-    };
-
-    runUserCode<Args extends unknown[]>(callback: (...args: Args) => void, ...args: Args): boolean {
-        if (!this.settings.noTimeout) {
-            this.userCodeDeadline = performance.now() + 1000;
-        }
-
-        try {
-            callback(...args);
-            return true;
-        } catch (error) {
-            this.gameState.paused = true;
-            console.error(error);
-            return false;
-        } finally {
-            this.userCodeDeadline = Infinity;
-        }
-    }
+    private worker: Worker | null = null;
+    private code = "";
+    private tileCount = 1;
+    private workerReady = false;
 
     // stolen from everything market (upcoming game im making... sshhhh)
     // https://github.com/sveltejs/svelte/issues/9547
@@ -79,18 +37,113 @@ export default class Game {
         Game.instance = this;
     }
 
-    // TODO: Should this be static?
-    static restart(renderer: Renderer) {
-        const game = Game.instance;
-        game.board.clear();
-        game.ants.clear();
+    setProgram(code: string, tileCount: number, renderer: Renderer | null) {
+        this.code = code;
+        this.tileCount = Math.max(1, tileCount);
 
-        game.gameState.iterations = 0;
-        game.runUserCode(game.onStart);
-        game.ants.add(new Ant({ x: game.board.width / 2, y: game.board.height / 2 }));
+        if (renderer) this.restart(renderer);
+    }
 
-        // TODO: Make a function for refreshing the screen or something
-        // refresh screen
-        renderer.tiles = game.board.cells;
+    requestStep(iterations: number) {
+        if (
+            !this.worker ||
+            !this.workerReady ||
+            this.gameState.updateInProgress ||
+            this.board.cells.byteLength === 0
+        ) {
+            return false;
+        }
+
+        const snapshot = this.board.cells.buffer as ArrayBuffer;
+        const message: SimulationRequest = {
+            type: "step",
+            iterations,
+            snapshot
+        };
+
+        this.workerReady = false;
+        this.gameState.updateInProgress = true;
+
+        try {
+            this.worker.postMessage(message, [snapshot]);
+            return true;
+        } catch (error) {
+            this.workerReady = true;
+            this.gameState.updateInProgress = false;
+            console.error("Failed to send a simulation step to the worker", error);
+            return false;
+        }
+    }
+
+    restart(renderer: Renderer, tileCount = this.tileCount) {
+        this.dispose();
+        this.tileCount = Math.max(1, tileCount);
+        this.gameState.updateInProgress = true;
+        this.gameState.paused = false;
+        this.gameState.fps = 0;
+        this.gameState.iterations = 0;
+
+        // A running step may have transferred the previous snapshot. Give the
+        // renderer an owned, cleared buffer immediately while the new worker boots.
+        this.board.cells = new Uint8ClampedArray(this.board.width * this.board.height);
+        renderer.tiles = this.board.cells;
+
+        if (typeof Worker === "undefined") {
+            this.gameState.updateInProgress = false;
+            return;
+        }
+
+        // Vite only recognises this exact URL constructor form when bundling a worker.
+        // eslint-disable-next-line svelte/prefer-svelte-reactivity
+        const worker = new Worker(new URL("./simulation.worker.ts", import.meta.url), {
+            type: "module"
+        });
+        this.worker = worker;
+
+        worker.onmessage = ({ data }: MessageEvent<SimulationResponse>) => {
+            if (this.worker !== worker) return;
+
+            this.board.cells = new Uint8ClampedArray(data.cells);
+            renderer.tiles = this.board.cells;
+            this.gameState.fps = data.duration;
+            this.gameState.iterations = data.iterations;
+            this.gameState.updateInProgress = false;
+            this.workerReady = !data.error;
+
+            if (data.error) {
+                this.gameState.paused = true;
+                const error = new Error(data.error.message);
+                error.name = data.error.name;
+                if (data.error.stack) error.stack = data.error.stack;
+                console.error(error);
+            }
+        };
+
+        worker.onerror = (event) => {
+            if (this.worker !== worker) return;
+
+            this.workerReady = false;
+            this.gameState.updateInProgress = false;
+            this.gameState.paused = true;
+            console.error("Simulation worker error", event.error ?? event.message);
+        };
+
+        const message: SimulationRequest = {
+            type: "init",
+            code: this.code,
+            tileCount: this.tileCount
+        };
+        worker.postMessage(message);
+    }
+
+    dispose() {
+        this.worker?.terminate();
+        this.worker = null;
+        this.workerReady = false;
+        this.gameState.updateInProgress = false;
+    }
+
+    static restart(renderer: Renderer, tileCount?: number) {
+        Game.instance.restart(renderer, tileCount);
     }
 }

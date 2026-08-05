@@ -45,6 +45,7 @@ export default class Board {
     // output() {
     // console.log(Game.colours, this.cells)
     // web workers are too slow before of postMessage
+    // (aged like milk) ^^
     // cellsToImage is webassembly version (5.5ms)
     // vanillaJs seems to be faster right now (3.3ms)
     // webgl2 + vanillaJs (2.4ms)

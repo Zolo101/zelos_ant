@@ -15,12 +15,10 @@
     import Game from "$lib/Game.svelte";
 
     let {
-        iterate,
         game,
         renderer,
         video = $bindable()
     }: {
-        iterate: (iterations: number) => void;
         game: Game;
         renderer: Renderer;
         video: any;
@@ -37,7 +35,7 @@
     }
 
     function oneTick() {
-        game.gameState.fps = tick(game, renderer!, iterate);
+        tick(game, renderer);
     }
 
     const formats: Record<string, string[]> = {
@@ -78,7 +76,7 @@
         <input
             type="range"
             min="0"
-            max="6"
+            max="7"
             step=".1"
             bind:value={sliderValue}
             class="w-full"

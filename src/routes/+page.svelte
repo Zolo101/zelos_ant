@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { onMount } from "svelte";
+    import { onMount, untrack } from "svelte";
 
     // It sucks that this plugin forces us to import 200kb worth of blockly stuff we don't use
     import "@blockly/field-colour-hsv-sliders";
@@ -28,7 +28,6 @@
     import { devicePixelRatio, innerHeight } from "svelte/reactivity/window";
     import { fade } from "svelte/transition";
     import { getBackgroundColour, getForegroundColour, hexToRgb } from "$lib/util";
-    import Ant from "$lib/ant";
     import { replaceState } from "$app/navigation";
     import { browser, dev } from "$app/environment";
     import type { Attachment } from "svelte/attachments";
@@ -56,9 +55,6 @@
 
     const game = new Game();
 
-    // Blockly inserts this at the start of every generated loop iteration.
-    javascriptGenerator.INFINITE_LOOP_TRAP = "__checkUserCodeDeadline();\n";
-
     let saves: PhotoSave[] = sync("ant-saves", []);
 
     // TODO: Make a default save generator so we don't have to hardcode this
@@ -69,10 +65,6 @@
         tiles: getDefaultTilesForTheme()
     });
     let sharedSave: Save | null = $state(null);
-
-    function addAnt(x: number, y: number) {
-        game.ants.add(new Ant({ x, y }));
-    }
 
     function resetWorkspace() {
         if (
@@ -198,20 +190,7 @@
                     // }
                 }
 
-                // game.tileTriggers.clear();
-                game.tileTriggers.length = 0;
-                Game.restart(renderer!);
-                try {
-                    // a better eval, but still not sandboxed
-                    // new Function("game", code)(game);
-
-                    new Function("game", "__checkUserCodeDeadline", code)(
-                        game,
-                        game.checkUserCodeDeadline
-                    );
-                } catch (err) {
-                    console.error("eval error", err);
-                }
+                game.setProgram(code, tiles.length, renderer);
             }
         });
         serialization.workspaces.load(defaultBlockly, workspace);
@@ -255,25 +234,27 @@
         }
     }
     const antCanvas: Attachment = (canvas) => {
-        if (renderer) return;
+        if (untrack(() => renderer)) return;
         const gl2 = (canvas as HTMLCanvasElement).getContext("webgl2", {
             preserveDrawingBuffer: true
         }) as WebGL2RenderingContext;
 
-        renderer = new Renderer(gl2);
+        const antRenderer = new Renderer(gl2);
+        renderer = antRenderer;
 
-        Game.restart(renderer);
+        Game.restart(
+            antRenderer,
+            untrack(() => tiles.length)
+        );
 
-        renderer.updateColours();
-
-        addAnt(game.board.width / 2, game.board.height / 2);
+        untrack(() => antRenderer.updateColours());
 
         // console.log(tiles, tileTriggers, Game.board.ants);
 
-        window.addEventListener("keydown", (e: KeyboardEvent) => {
+        const handleKeydown = (e: KeyboardEvent) => {
             switch (e.code) {
                 case "KeyR":
-                    Game.restart(renderer!);
+                    Game.restart(antRenderer, tiles.length);
                     break;
 
                 case "KeyP":
@@ -281,12 +262,14 @@
                     break;
 
                 case "KeyT":
-                    game.gameState.fps = tick(game, renderer!, iterate);
+                    tick(game, antRenderer);
                     break;
             }
-        });
+        };
+        window.addEventListener("keydown", handleKeydown);
 
-        window.requestAnimationFrame(frame);
+        let frameRequest = window.requestAnimationFrame(frame);
+        let frameTimeout: ReturnType<typeof setTimeout> | undefined;
 
         $effect(() => {
             renderer?.updateColours();
@@ -314,21 +297,26 @@
 
         function frame() {
             if (!game.gameState.updateInProgress && !game.gameState.paused) {
-                game.gameState.fps = tick(game, renderer!, iterate);
+                tick(game, antRenderer);
+            } else {
+                antRenderer.render();
             }
-            renderer!.render();
 
             if (game.settings.reduceMotion) {
                 // FPS limiter (10fps)
-                setTimeout(() => {
-                    window.requestAnimationFrame(frame);
+                frameTimeout = setTimeout(() => {
+                    frameRequest = window.requestAnimationFrame(frame);
                 }, 1000 / 10);
             } else {
-                window.requestAnimationFrame(frame);
+                frameRequest = window.requestAnimationFrame(frame);
             }
         }
 
         return () => {
+            window.cancelAnimationFrame(frameRequest);
+            if (frameTimeout) clearTimeout(frameTimeout);
+            window.removeEventListener("keydown", handleKeydown);
+            game.dispose();
             console.log("Destroying ant canvas");
         };
     };
@@ -354,31 +342,6 @@
 
         return () => mediaQuery.removeEventListener("change", updateDpr);
     });
-
-    function iterate(iterations: number) {
-        // Cache non-reactive hot-loop inputs once per frame. Blockly changes can
-        // only arrive between frames, so the values remain valid for this batch.
-        // TODO: I don't like this const stuff, feels redundant
-        const { ants, board, onEachIteration, tileTriggers } = game;
-        const { cells, width: boardWidth } = board;
-        board.setTileCount(tiles.length);
-
-        for (let i = 0; i < iterations; i++) {
-            for (const ant of ants) {
-                // TODO: Figure out how to make the iterations block work without slowing down the loop
-                // onEachIteration(ant, 0);
-                if (!game.runUserCode(onEachIteration, ant, 0)) return;
-
-                const { x, y } = ant.position;
-                const cell = cells[y * boardWidth + x];
-
-                // Attempt to run the trigger function if it exists.
-                // tileTriggers[cell]?.(ant);
-                const tileTrigger = tileTriggers[cell];
-                if (tileTrigger && !game.runUserCode(tileTrigger, ant)) return;
-            }
-        }
-    }
 
     // For blockly positioning
     let headerHeight = $state(0);
@@ -433,7 +396,7 @@
         <button onclick={() => (game.showSaves = !game.showSaves)}>Load</button>
     {/if}
     <!-- <button onclick={() => (game.showSaves = !game.showSaves)}>Featured</button> -->
-    <!-- <button onclick={() => (game.showSettings = !game.showSettings)}>Settings</button> -->
+    <button onclick={() => (game.showSettings = !game.showSettings)}>Settings</button>
     <button onclick={() => (game.showAbout = true)}>About</button>
     <!-- <p class="opacity-75">Saves & Recording is currently disabled</p> -->
     <div class="mr-5 ml-auto flex gap-9 tabular-nums">
@@ -453,9 +416,6 @@
         {/if}
     </div>
 
-    {#if game.gameState.fps > 1000 && game.gameState.paused}
-        <span class="text-red-500 font-bold">Anti-Freeze: Ants have auto paused</span>
-    {/if}
     {#if sharedSave}
         <div class="ml-auto flex items-center gap-3 px-2">
             <span>Viewing:</span>
@@ -492,7 +452,7 @@
                 >
                     <p class="text-4xl font-bold">Settings</p>
                     <br />
-                    <input
+                    <!-- <input
                         type="checkbox"
                         bind:checked={game.settings.advancedMode}
                         id="advancedMode"
@@ -505,24 +465,15 @@
                         >
                     </label>
                     <br />
-                    <br />
-                    <input type="checkbox" bind:checked={game.settings.loop} id="loop" />
+                    <br /> -->
+                    <!-- <input type="checkbox" bind:checked={game.settings.loop} id="loop" />
                     <label for="loop" class="font-bold">
                         Loop<br /><span class="font-normal italic"
                             >Lets ants wrap around the screen. Can create some cool stuff!</span
                         >
                     </label>
                     <br />
-                    <br />
-                    <input type="checkbox" bind:checked={game.settings.noTimeout} id="noTimeout" />
-                    <label for="noTimeout" class="font-bold">
-                        No Timeout<br /><span class="font-normal italic"
-                            >Disables the 1-second timeout for loops. Causes annoying freezes if
-                            you're not careful with for/while loops.</span
-                        >
-                    </label>
-                    <br />
-                    <br />
+                    <br /> -->
                     <input
                         type="checkbox"
                         bind:checked={game.settings.reduceMotion}
@@ -561,7 +512,7 @@
             <!-- <img src={video} alt="Recorded gif" class="max-w-full" /> -->
         {/if}
         {#if workspace && renderer}
-            <Controls {iterate} {game} {renderer} bind:video />
+            <Controls {game} {renderer} bind:video />
             <Tiles {workspace} {renderer} />
         {/if}
     </div>
